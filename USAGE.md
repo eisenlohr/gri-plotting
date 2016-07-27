@@ -2,12 +2,12 @@ The following examples assume that the environment variable GRI is pointing to t
 
 # plot.gri
 
-To get usage help call the script without any argument
+Call the script without any argument for usage hints
 
 prompt> gri $GRI/plot
 
 # plot_distribution.gri
 
-To get usage help call the script without any argument
+Call the script without any argument for usage hints
 
 prompt> gri $GRI/plot_distribution
