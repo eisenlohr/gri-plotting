@@ -1,0 +1,61 @@
+#!/usr/bin/python
+
+import os,sys,re
+from optparse import OptionParser 
+
+
+parser = OptionParser(usage='%prog [options] filename xcolumn ycolumn', description = """
+Converts point data for plotting it as step function.
+
+Gets a list of data and two column indices for the x- and y-column respectively. 
+Returns a list of (x,y) pairs that describe a step function of the original data.
+By default, the original x-value will be positioned in the middle of the step.
+""")
+
+parser.add_option('-p', '--position', dest='position', choices=('center','left','right'), \
+					help = 'position of the original data point: middle, start, end [default="%default"]')
+parser.set_defaults(position = 'center')
+
+(options, args) = parser.parse_args()
+
+if not len(args) == 3:														# parsing of input arguments
+	parser.error('need exactly three arguments = filename xcolumn ycolumn...')
+else:
+	filename = args[0]
+	xcolumn = int(args[1])-1
+	ycolumn = int(args[2])-1
+
+
+file = open(filename)														# open and read given file
+content = file.readlines()
+file.close()
+
+start = 0																	# skip header if present
+m = re.match('(\d+)\s+head',content[0],re.I)
+if m:
+	start = 1+int(m.group(1))
+
+data = [[float(line.split()[c]) for c in [xcolumn, ycolumn]] for line in content[start:]]	# store x-y data
+
+stepdata = []																# create step data
+if options.position == 'left':
+	for i in range(len(data)-1):
+		stepdata.extend([[data[i  ][0], data[i][1]],
+						 [data[i+1][0], data[i][1]]])
+	stepdata.append(data[-1])
+	
+elif options.position == 'right':
+	stepdata.append(data[0])
+	for i in range(1,len(data)):
+		stepdata.extend([[data[i-1][0], data[i][1]],
+						 [data[i  ][0], data[i][1]]])
+	
+elif options.position == 'center':
+	stepdata.append([1.5*data[0][0]-0.5*data[1][0], data[0][1]])
+	for i in range(1,len(data)):
+		stepdata.extend([[0.5*(data[i-1][0]+data[i][0]), data[i-1][1]],
+						 [0.5*(data[i-1][0]+data[i][0]), data[i  ][1]]])
+	stepdata.append([1.5*data[-1][0]-0.5*data[-2][0], data[-1][1]])
+
+for item in stepdata:														# output data to stdout
+	print '%g\t%g'%(item[0],item[1])

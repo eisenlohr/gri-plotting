@@ -1,0 +1,371 @@
+.labelfont. = 11
+.tickfont. = 9
+
+.mandatorycount. = 9
+.argcount. = 2                       # default: filename column
+
+.noise. = 0
+
+\weighted = ""
+
+.total. = 0
+\total = ""
+\skip = ""
+\restriction = ""                    # --absolute, --positive, --negative for make_cumprob
+
+.offset. = 0
+\offset = ""
+
+.color. = 0
+.owncolor. = 0
+\color = ""
+.colormap. = 1
+\colormap = "gray"
+
+.steps.  = 0
+.curvelabel. = 0
+.weightcolumn. = 0
+
+.arg. = 0
+
+.arg. += 1
+\arg = {rpn .arg. argv}               # 'PROCESS'
+if {rpn "process" "\arg" ==}          # check for optional processing indicator
+ .arg. += 1
+ \noise = {rpn .arg. argv}
+ .noise. = {rpn "\noise" atof}
+ if {rpn 10 .noise. > }
+  show "\noise steps restriction"
+ else if {rpn 0 .noise. > }
+  show "\noise noisy copies"
+ end if
+else
+ .arg. -= 1                           # try something different
+end if
+
+.arg. += 1
+\arg = {rpn .arg. argv}               # 'WEIGHTED'
+if {rpn "weighted" "\arg" ==}         # check for optional flag
+ \weighted = "--weight"
+ .argcount. += 1
+ .weightcolumn. = 1
+else
+ .arg. -= 1                           # try something different
+end if
+
+.arg. += 1
+\arg = {rpn .arg. argv}               # 'TOTAL'
+if {rpn "total" "\arg" ==}            # check for string
+ .arg. += 1
+ \total = {rpn .arg. argv}            # read total
+  if {rpn "own" "\total" ==}          # total per data set
+    .total. = 1
+    .argcount. += 1
+    if ..debug..
+      show "own total"
+    end if
+  else
+    \total  = "--total '\total'"
+  end if
+else
+ .arg. -= 1                           # try something different
+end if
+
+.arg. += 1
+\arg = {rpn .arg. argv}               # 'OFFSET'
+if {rpn "offset" "\arg" ==}           # check for optional drawing restriction
+ .offset. = 1
+ .argcount. += 1
+else
+ .arg. -= 1                           # try something different
+end if
+
+.arg. += 1
+\arg = {rpn .arg. argv}               # 'SKIP'
+if {rpn "skip" "\arg" ==}             # check for string
+ .arg. += 1
+ \skip = {rpn "-s '" .arg. argv strcat "'" strcat}
+else
+ .arg. -= 1                           # try something different
+end if
+
+.arg. += 1
+\arg = {rpn .arg. argv}               # 'COLORMAP' | 'COLOR'
+if {rpn "colormap" "\arg" ==}         # check for optional drawing restriction
+  .colormap. = 1
+  .color. = 0
+  .arg. += 1
+  \colormap = {rpn .arg. argv}        # read colormap
+else if {rpn "color" "\arg" ==}       # check for optional drawing restriction
+  .color. = 1
+  .colormap. = 0
+  .arg. += 1
+  \color = {rpn .arg. argv}           # read color
+  if {rpn "own" "\color" ==}          # color per data set
+    .owncolor. = 1
+    .argcount. += 1
+  end if
+else
+ .arg. -= 1                           # try something different
+end if
+
+.arg. += 1
+\arg = {rpn .arg. argv}               # 'LABEL'
+if {rpn "label" "\arg" ==}            # check for optional drawing restriction
+ .curvelabel. = 1
+ .argcount. += 1
+else
+ .arg. -= 1                           # try something different
+end if
+
+.arg. += 1
+\arg = {rpn .arg. argv}               # 'ABS' | 'POS' | 'NEG'
+if {rpn "abs" "\arg" ==}              # check for absolute restriction
+ \restriction = "--absolute"
+else if {rpn "pos" "\arg" ==}         # check for positive restriction
+ \restriction = "--positive"
+else if {rpn "neg" "\arg" ==}         # check for negative restriction
+ \restriction = "--negative"
+else
+ .arg. -= 1                           # try something different
+end if
+
+.arg. += 1
+\arg = {rpn .arg. argv}               # 'ASPECT'
+if {rpn "aspect" "\arg" ==}           # check for optional aspect ratio indicator
+ .arg. += 1
+ .aspect.  = {rpn .arg. argv atof}    # read y/x ratio
+else
+ .arg. -= 1                           # try something different
+ .aspect. = 1
+end if
+
+.arg. += 1
+\arg = {rpn .arg. argv}               # 'FRAME'
+if {rpn "frame" "\arg" ==}            # check for optional frame size selection
+ .frame. = 1                          # remember
+else
+ .arg. -= 1                           # try something different
+ .frame. = 0
+end if
+
+.datacount. = {rpn argc 1 - .mandatorycount. .arg. + -} 
+if {rpn 0 .datacount. .argcount. remainder == 0 .datacount. >= and}
+ .nFiles. = {rpn .datacount. .argcount. /}
+ if ..debug..
+   show "nFiles " .nFiles.
+ end if
+else
+ show "Usage: plot_distribution.gri"
+ show "       [ 'process' noise |          --> use NOISE (<=10) noisy copies per value"
+ show "                   limit ]          --> limit distribution to LIMIT (>10) values"
+ show "       [ 'weighted' ]               --> weight distribution by secondary column value instead of number"
+ show "       [ 'total' (value | 'own' ) ] --> total number of observations across multiple series"
+ show "       [ 'offset' ]                 --> with individual series offset"
+ show "       [ 'skip' value ]             --> value to ignore in distribution"
+ show "       [ 'colormap' name |          --> employ named colormap"
+ show "         'color'   (name | 'own') ] --> fixed color"
+ show "       [ 'label' ]                  --> with label"
+ show "       [ 'abs' | 'pos' | 'neg']     --> use absolute | positive | negative values"
+ show "       [ 'aspect' y/x-ratio ]       --> frame aspect ratio"
+ show "       [ 'frame' ] size             --> diagram (frame) size in cm"
+ show "       x.type x.label x.format      --> ('linear' | 'log') theLabel %f"
+ show "       x.start x.end x.Nincs x.Nsubincs x.scaling"
+ show "       filename column [[weightColumn] [total] [offset] [label] [color]]"
+ show "     [ filename column ... ]"
+ if ..debug..
+   show "expecting " .argcount. " per data having " .datacount.
+   .i. = 0
+   while {rpn .datacount. .i. <}
+     show {rpn .i. .mandatorycount. + .arg. + 1 + } ":" {rpn .i. .mandatorycount. + .arg. + 1 + argv}
+     .i.   += 1
+   end while
+ end if
+ quit
+end if
+
+.size.      = {rpn 1 .arg. + argv atof}
+\xtype      = {rpn 2 .arg. + argv} 
+\xlabel     = {rpn 3 .arg. + argv} 
+\xformat    = {rpn 4 .arg. + argv}
+.xstart.    = {rpn 5 .arg. + argv atof}
+.xend.      = {rpn 6 .arg. + argv atof}
+.xNincs.    = {rpn 7 .arg. + argv atof}
+.xNsubincs. = {rpn 8 .arg. + argv atof}
+.xscale.    = {rpn 9 .arg. + argv atof}
+if {rpn "log" "\xtype" ==}
+  .xbiginc. = {rpn .xend. log .xstart. log - .xNincs. 1 sup / floor 1 sup}
+  .xsmlinc. = .xNsubincs.                  # for log axes negative sign suppresses subticks
+else
+  .xbiginc. = {rpn .xend. .xstart. - .xNincs. 1 sup /}
+  .xsmlinc. = {rpn .xbiginc. 1 .xNsubincs. sup /}
+end if
+
+\ytype    = "linear"
+\ylabel   = "cumulative probability"
+\yformat  = "%0.2f"
+.ystart.  = 0
+.yend.    = 1
+.ybiginc. = 0.25
+.ysmlinc. = 0.05
+.arg. += 9
+
+set font to Times
+set font size .labelfont.
+
+sprintf \ytickmin "\yformat" .ystart.
+sprintf \ytickmax "\yformat" .yend.
+.xmargin. = {rpn "\xlabel" ascent "\xlabel" descent + "\ylabel" ascent "\ylabel" descent + sup 4 * "\ytickmin" width "\ytickmax" width sup 2.0 "\ylabel" ascent "\ylabel" descent + * + sup}
+.ymargin. = {rpn "\xlabel" ascent "\xlabel" descent + "\ylabel" ascent "\ylabel" descent + sup 3 *}
+
+if .frame.
+  .diagramsize. = .size.
+  .size. = {rpn 0.4 .xmargin. .diagramsize. + +}
+  .gutter.  = {rpn 0.4 .size. 18 / inf}
+  .size. += {rpn .gutter. 0.4 -}
+else
+  .gutter.  = {rpn 0.4 .size. 18 / inf}
+  .diagramsize.   = {rpn .size. .xmargin. .gutter. + - }
+end if
+
+set bounding box 0 0 .size. {rpn .ymargin. .aspect. .diagramsize. * .gutter. + +} cm
+set x margin .xmargin.
+set y margin .ymargin.
+set x size .diagramsize.
+set y size {rpn .aspect. .diagramsize. *}
+
+
+if !..publication..
+ set font size 3
+ .info. = 80
+ if {rpn "\.ps_file." strlen .info. <}
+   .sublen. = {rpn "\.ps_file." strlen 64 inf}
+   draw label {rpn "..." "\.ps_file." strlen .sublen. - .sublen. "\.ps_file." substr strcat} at {rpn 0.4 .gutter. * .xmargin. .diagramsize. + +} .ymargin. cm rotated 90
+ else
+   draw label "\.ps_file." at {rpn 0.4 .gutter. * .xmargin. .diagramsize. + +} .ymargin. cm rotated 90
+ end if
+ draw label "\.time."    at {rpn 0.8 .gutter. *  .xmargin. .diagramsize. + +} .ymargin. cm rotated 90
+end if
+
+
+set font size .labelfont.
+draw label "\xlabel" centered at {rpn .xmargin. .diagramsize. 2 / +} {rpn "\xlabel" descent .labelfont. 3 / pttocm +} cm
+draw label "\ylabel" centered at {rpn "\ylabel" ascent .labelfont. 3 / pttocm +} {rpn .ymargin. .aspect. .diagramsize. * 2 / +} cm rotated 90
+set font size .tickfont.
+
+set x type \xtype
+set y type \ytype
+if {rpn "log" "\xtype" ==}
+  set x axis .xstart. .xend. .xbiginc. .xsmlinc.
+else
+  set x axis .xstart. .xend. .xbiginc. .xsmlinc. labeling .xstart.
+end if
+if {rpn "log" "\ytype" ==}
+  set y axis .ystart. .yend. .ybiginc. .ysmlinc.
+else
+  set y axis .ystart. .yend. .ybiginc. .ysmlinc. labeling .ystart.
+end if
+
+set x format "\xformat"
+set y format "\yformat"
+set axes style 0
+set tics in
+set x name ""
+set y name ""
+set line width axis 0.5
+draw axes
+
+set clip postscript on
+set symbol size 0.15
+set line width symbol 1.5
+set line width 1.5
+
+
+# +++++ loop over distributions +++++
+
+
+.i. = 0
+while {rpn .nFiles. .i. <}
+
+ # ------------ read arguments for this data set -------------
+
+ \filename = {rpn 1 .arg. + argv}
+ \index    = {rpn 2 .arg. + argv}
+ if .weightcolumn.
+   \weightColumn  = {rpn 3 .arg. + argv}
+ else
+   \weightColumn  = ""
+ end if
+ if .total.
+   \total  = {rpn "--total '" 3 .weightcolumn. .arg. + + argv strcat "'" strcat}
+ end if
+ if .offset.
+   \offset  = {rpn "--offset '" 3 .weightcolumn. .total. .arg. + + + argv strcat "'" strcat}
+ end if
+ if .curvelabel.
+   \label  = {rpn 3 .weightcolumn. .total. .offset. .arg. + + + + argv}
+ end if
+ if .owncolor.
+   \color  = {rpn 3 .weightcolumn. .total. .offset. .curvelabel. .arg. + + + + + argv}
+ end if
+
+ show {rpn "plot_distribution.gri: " "\filename" strcat }
+
+
+ # ------------ set color --------------
+ 
+ if .color.
+   set color \color
+ else if .colormap.                                 # loop through colormap with constant hue, increasing saturation and decreasing brightness
+   .saturation. = {rpn .i. 1 + .nFiles. /}          # from pure to no hue visible
+   .brightness. = {rpn 1 .i. .nFiles. / - sqrt }    # from bright towards dark
+   if {rpn "red" "\colormap" ==}
+     .hue. = 0
+   else if {rpn "green" "\colormap" ==}
+     .hue. = 0.333
+   else if {rpn "blue" "\colormap" ==}
+     .hue. = 0.667
+   else if {rpn "yellow" "\colormap" ==}
+     .hue. = 0.167
+   else if {rpn "cyan" "\colormap" ==}
+     .hue. = 0.5
+   else if {rpn "magenta" "\colormap" ==}
+     .hue. = 0.833
+   else                                             # default is grayscale
+     .hue. = 0
+     .saturation. = 0
+     .brightness. = {rpn 1 .i. 1 + .nFiles. / -}
+   end if
+   set color hsb .hue. .saturation. .brightness.
+ end if
+ 
+
+ # ------------ process distribution --------------
+
+ if .noise.
+  open "make_cumprob \weighted \weightColumn \total \offset \restriction \skip -n \noise -c \index \"\filename\" |"
+ else
+  open "make_cumprob \weighted \weightColumn \total \offset \restriction \skip           -c \index \"\filename\" |"
+ end if
+
+
+ # ------------  draw distribution --------------
+
+ read columns x y
+ x *= .xscale.
+ draw curve
+
+
+ # ------------- draw label ----------------
+
+ if .curvelabel.
+   draw label "\label" at {rpn x ..num_col_data.. .i. 1 + * .nFiles. 1 + / @} {rpn y ..num_col_data.. .i. 1 + * .nFiles. 1 + / @}
+end if
+
+
+ # ---------- increase counter ---------
+
+ .i.   += 1
+ .arg. += .argcount.
+
+end while

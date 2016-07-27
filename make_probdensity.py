@@ -1,0 +1,108 @@
+#!/usr/bin/env python
+
+import os,sys,re,math,random,StringIO,numpy
+from optparse import OptionParser
+
+
+parser = OptionParser(usage="%prog options datafile")
+parser.add_option('-r','--resolution', dest='resolution', type='int', \
+                  help='resolution of numerical derivative')
+parser.add_option('-c','--column', dest='column', type='int', \
+                  help='column in datafile containing distributed values')
+parser.add_option('-n','--noise','--limit', dest='noise', type='int', \
+                  help='add noise (half of minimum value) to quantized values and return NOISE<=10 copies per value or limit the number of values used from the distribution to LIMIT>10')
+parser.add_option('-s','--skip', dest='skip', type='float', \
+                  help='value to skip')
+parser.add_option('--offset', dest='offset', type='float', \
+                  help='number of observations (or cummulative value) to offset origin')
+parser.add_option('--total', dest='total', type='int', \
+                  help='total number (or weight) of observations across multiple series')
+parser.add_option('--absolute', dest='absolute', action='store_true', \
+                  help='use absolute magnitude of values')
+parser.add_option('--positive', dest='positive', action='store_true', \
+                  help='restrict output to positive (>0) values')
+parser.add_option('--negative', dest='negative', action='store_true', \
+                  help='restrict output to negative (<0) values')
+parser.add_option('--weighted', dest='weighted', action='store_true', \
+                  help='weight by value instead of by number')
+
+parser.set_defaults(resolution = 0)
+parser.set_defaults(column = 1)
+parser.set_defaults(noise = 0)
+parser.set_defaults(offset = 0)
+parser.set_defaults(total = 0)
+parser.set_defaults(absolute = False)
+parser.set_defaults(positive = False)
+parser.set_defaults(negative = False)
+parser.set_defaults(weighted = False)
+
+(options,args) = parser.parse_args()
+
+options.column = max(1,options.column)        # read (sane) index of desired element
+
+if os.path.exists(args[0]):
+  with open(args[0]) as f:
+    content = f.read()                        # parse the given file
+else:
+  content = sys.stdin.read()                  # or default to stdin
+
+m = re.search('^(\d+)\s+head',content,re.I)
+skip = 1+int(m.group(1)) if m else 0
+
+filedata = numpy.loadtxt(StringIO.StringIO(content),skiprows = skip,usecols = [options.column-1])
+data = filedata[filedata != options.skip] if options.skip != None else filedata
+
+if options.noise > 0 and options.noise <= 10: # if noise requested 
+  numpy.random.seed()
+  noise = min(abs(data))*(numpy.random.rand(len(data),options.noise)-0.5)    # random scatter between +1 and -1
+  data = (data.reshape((len(data),option.noise))+noise).reshape(len(data)*options.noise)
+
+if options.absolute: data = abs(data)      # restrict to absolute values ?
+  
+data.sort()                                # sort the data
+
+if options.positive:
+  for i in xrange(len(data)):              # walk through data
+    if data[i] > 0.0: break                # first positive value in sorted list
+  data = data[i:]                          # omit all non-positive values
+
+if options.negative:
+  for i in xrange(len(data)):              # walk through data
+    if data[i] >= 0.0: break               # first non-negative value in sorted list
+  data = data[:i]                          # omit all non-negative values
+
+if options.noise > 10 and options.noise < len(data):
+  index = range(int(math.floor((len(data)-1)/options.noise/2)),
+                len(data),
+                int(math.floor((len(data)-1)/options.noise)))
+else:
+  index = range(len(data))
+
+
+probdensity = []
+fullScale = max(sum(data),options.total) if options.weighted else max(len(index),options.total)
+F0 = options.offset/fullScale
+F = F0
+x0 = 2.*data[0]-data[1]
+dF0 = 1./options.resolution
+dF = dF0
+
+for i in index:
+  F += data[i]/fullScale if options.weighted else 1.0/fullScale
+  if F > F0 + dF - 1e-2/options.resolution:
+    if data[i] > x0:                                          # finite slope?
+      probdensity.append([x0,F0,(data[i]+x0)/2.,dF/(data[i]-x0)])   # report slope (probability density)
+      x0 = data[i]                                            # start new interval
+      F0 += dF
+      dF = dF0                                                # reset interval length
+    else:
+      dF += dF0                                               # increase probability interval
+
+if F > F0:                                                    # missing last interval?
+  if data[i] > x0:                                            # finite slope?
+    probdensity.append([x0,F0,(data[i]+x0)/2.,(F-F0)/(data[i]-x0)])  # report slope (probability density)
+  else:
+    probdensity[-1][2:] = [(data[i]+probdensity[-1][0])/2.,(1.-probdensity[-1][1])/(data[i]-probdensity[-1][0])]
+
+for f in probdensity:
+  print f[2],f[3]

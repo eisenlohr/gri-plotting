@@ -1,0 +1,101 @@
+#!/usr/bin/env python
+
+import os,sys,re,math,random,StringIO,numpy as np
+from optparse import OptionParser
+
+
+parser = OptionParser(usage="%prog options datafile")
+
+
+parser.add_option('-c','--column', dest='column', type='int',
+                  help='column in datafile containing distributed values')
+parser.add_option('-n','--noise','--limit', dest='noise', type='int',
+                  help='add noise (half of minimum value) to quantized values and return NOISE<=10 copies per value or limit the number of values used from the distribution to LIMIT>10')
+parser.add_option('-s','--skip', dest='skip', type='float',
+                  help='value to skip')
+parser.add_option('--weight', dest='weight', type='string',
+                  help='column containing weight')
+parser.add_option('--total', dest='total', type='float',
+                  help='total number of observations (or cummulative weighted value) across multiple series')
+parser.add_option('--offset', dest='offset', type='float',
+                  help='number of observations (or cummulative weighted value) to offset origin')
+parser.add_option('--normalized', dest='normalized', action='store_true',
+                  help='offset is normalized to 1')
+parser.add_option('--absolute', dest='absolute', action='store_true',
+                  help='use absolute magnitude of values')
+parser.add_option('--positive', dest='positive', action='store_true',
+                  help='restrict output to positive (>0) values')
+parser.add_option('--negative', dest='negative', action='store_true',
+                  help='restrict output to negative (<0) values')
+
+
+parser.set_defaults(column = 1,
+                    noise = 0,
+                    total = 0,
+                    offset = 0,
+                    normalized = False,
+                    absolute = False,
+                    positive = False,
+                    negative = False,
+                    weight = None,
+                   )
+(options,args) = parser.parse_args()
+
+options.column = max(1,options.column)-1             # read (sane) index of desired element
+if options.weight != None:
+  options.weight = max(1,int(options.weight))-1 if options.weight.lower() != 'none' else None      # read (sane) index of desired weighting
+
+if os.path.exists(args[0]):
+  with open(args[0]) as f:
+    content = f.read()                               # parse the given file
+else:
+  content = sys.stdin.read()                         # or default to stdin
+
+m = re.search('^(\d+)\s+head',content,re.I)
+skip = 1+int(m.group(1)) if m else 0
+filedata = np.loadtxt(StringIO.StringIO(content),
+                      skiprows=skip,
+                      usecols=[options.column,options.weight if options.weight else options.column],
+                      ndmin=2)
+data = filedata[filedata[:,0] != options.skip] if options.skip else filedata
+
+if options.weight == None:
+  data[:,1] = 1
+
+if options.noise > 0 and options.noise <= 10: # if noise requested 
+  data =  np.repeat(data,options.noise,0)
+  np.random.seed()
+  noise = min(abs(data[:,0]))*(np.random.rand(len(data)*options.noise)-0.5)    # random scatter between +1 and -1
+  data[:,0] += noise
+
+if options.absolute: data[:,0] = abs(data[:,0])      # restrict to absolute values ?
+  
+ind = np.lexsort((data[:,1],data[:,0]))              # sort the data
+data = data[ind]
+
+if options.positive:
+  for i in xrange(len(data)):                   # walk through data
+    if data[i] > 0.0: break                # first positive value in sorted list
+  data = data[i:]                          # omit all non-positive values
+
+if options.negative:
+  for i in xrange(len(data)):                   # walk through data
+    if data[i] >= 0.0: break               # first non-negative value in sorted list
+  data = data[:i]                          # omit all non-negative values
+
+if options.noise > 10 and options.noise < len(data):
+  index = range(int(math.floor((len(data)-1)/options.noise/2)),
+                len(data),
+                int(math.floor((len(data)-1)/options.noise)))
+else:
+  index = range(len(data))
+
+fullScale = max(sum(data[:,1]),options.total) if options.weight != None else max(len(data),options.total)
+F = options.offset if options.normalized else options.offset/fullScale 
+
+formerI = 0
+for i in index:
+  dF = sum(data[formerI:i+1,1])/fullScale
+  print "%e\t%g\n%e\t%g"%(data[i,0],F,data[i,0],F+dF)
+  F += dF
+  formerI = i+1

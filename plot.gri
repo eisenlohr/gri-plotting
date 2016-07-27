@@ -1,0 +1,876 @@
+.labelfont. = 11
+.tickfont. = 9
+.infofont. = 3
+
+.mandatorycount. = 17
+.argcount. = 3                                                            # filename x y
+
+new \
+  .clip. \
+  .tight. \
+  .line. .ownline. \line .linewidth. \
+  .marker. .ownsymbol. \symbol .symbolsize. \
+  .color. .colorByData. .zhue. .hasZhue. .owncolor. \color .colormap. \colormap \
+  .steps. \
+  .curvelabel. \
+  .axislabelx. .axislabely. \
+  .absx. .absy. \
+  .secondx. .secondy. \
+  .gap. \
+  .aspect. \
+  .frame. \
+  .arg.
+
+.line.   = 0
+.ownline. = 0
+
+.marker. = 0
+.ownsymbol. = 0
+
+.color. = 0
+.colorByData. = 0
+.zhue. = 0
+.hasZhue. = 0
+.owncolor. = 0
+\color = ""
+.colormap. = 1
+\colormap = "gray"
+
+.steps.  = 0
+.curvelabel. = 0
+.axislabelx. = 1
+.axislabely. = 1
+
+.arg. = 0
+
+
+# common functions
+
+#-------------------------------------------------------------------------
+`get_logical "\key" &.pos. &.flag. .default.'
+{
+  if {rpn "\.word1." \.word2. 1 + argv ==}        # check match
+    \.word3.  = 1                                 # make flag true
+    \.word2. += 1                                 # advance position
+  else if {rpn \.words. 5 ==}                     # has default?
+    \.word3. = \.word4.                           # assign if key not found
+  end if
+  if ..debug..
+    show "logical \.word1. " \.word3. "   default " \.word4.
+  end if
+}
+
+#-------------------------------------------------------------------------
+`get_number "\key" &.pos. &.number. .default.'
+{
+  if {rpn "\.word1." \.word2. 1 + argv ==}        # check match
+    \.word3.  = {rpn \.word2. 2 + argv atof}      # assign value
+    \.word2. += 2                                 # advance position
+  else if {rpn \.words. 5 ==}                     # has default?
+    \.word3. = \.word4.                           # assign if key not found
+  end if
+  if ..debug..
+    show "number \.word1. " \.word3. "   default " \.word4.
+  end if
+}
+
+#-------------------------------------------------------------------------
+`get_bitfield "\both" "\first" "\second" &.pos. &.first. &.second.'
+{
+  new \arg
+  \arg = {rpn \.word4. 1 + argv}
+  if      {rpn "\.word1." "\arg" ==}              # check both
+    \.word5. = 1
+    \.word6. = 1
+    \.word4. += 1                                 # advance position
+  else if {rpn "\.word2." "\arg" ==}              # check first
+    \.word5. = 1
+    \.word6. = 0
+    \.word4. += 1                                 # advance position
+  else if {rpn "\.word3." "\arg" ==}              # check second
+    \.word5. = 0
+    \.word6. = 1
+    \.word4. += 1                                 # advance position
+  else
+    \.word5. = 0
+    \.word6. = 0
+  end if
+  if ..debug..
+    show "bitfield \.word1. " \.word5. " " \.word6.
+  end if
+}
+
+
+#-------------------------------------------------------------------------
+`the_layout'
+{
+  set font to Times
+  set font size .labelfont.
+  set line width axis 0.5
+
+  if .tight.  
+    .leftmargin.    = {rpn ..linewidthaxis.. pttocm}
+    .rightmargin.   = {rpn ..linewidthaxis.. pttocm 2 *}
+    .bottommargin.  = {rpn ..linewidthaxis.. pttocm}
+    .topmargin.     = {rpn ..linewidthaxis.. pttocm 2 *}
+  else
+    .leftmargin.    = 0.4
+    .rightmargin.   = 0.4
+    .bottommargin.  = 0.4
+    .topmargin.     = 0.4
+  end if
+
+  if .axislabelx.
+    .leftmargin.   = {rpn "\xtickmin" width .leftmargin. sup}
+    .rightmargin.  = {rpn "\xtickmax" width .rightmargin. sup}
+    .bottommargin. = {rpn "\xlabel" ascent "\xlabel" descent + 3 * .bottommargin. sup}
+  end if
+  if .secondx.
+    .leftmargin.   = {rpn "\x2tickmin" width .leftmargin. sup}
+    .rightmargin.  = {rpn "\x2tickmax" width .rightmargin. sup}
+    .topmargin.    = {rpn "\x2label" ascent "\x2label" descent + 3 * .topmargin. sup}
+  end if
+
+  if .axislabely.
+    .leftmargin.   = {rpn "\ytickmin" width "\ytickmax" width sup "\ylabel" ascent "\ylabel" descent + 3 * + .leftmargin. sup}
+    .bottommargin. = {rpn "\ytickmin" ascent "\ytickmin" descent + .bottommargin. sup}
+    .topmargin.    = {rpn "\ytickmax" ascent "\ytickmax" descent + .topmargin. sup}
+  end if
+  if .secondy.
+    .rightmargin.  = {rpn "\y2tickmin" width "\y2tickmax" width sup "\y2label" ascent "\y2label" descent + 2 * + .rightmargin. sup}
+    .bottommargin. = {rpn "\ytickmin2" ascent "\ytickmin2" descent + .bottommargin. sup}
+    .topmargin.    = {rpn "\ytickmax2" ascent "\ytickmax2" descent + .topmargin. sup}
+  end if
+  
+  if .frame.
+    .diagramsize. = .size.
+    .size. = {rpn .leftmargin. .rightmargin. + .diagramsize. +}
+  else
+    .diagramsize. = {rpn .size. .leftmargin. .rightmargin. + - }
+  end if
+
+  set bounding box 0 0 .size. {rpn .bottommargin. .topmargin. + .aspect. .diagramsize. * +} cm
+  set x margin .leftmargin.
+  set y margin .bottommargin.
+  set x size .diagramsize.
+  set y size {rpn .aspect. .diagramsize. *}
+}
+
+#-------------------------------------------------------------------------
+`the_info'
+{
+  if !..publication..
+   set font size .infofont.
+   .info. = 80
+   .infomargin. = {rpn 0.1 .secondy. * .bottommargin. .secondy. not * +}
+   if {rpn "\.ps_file." strlen .info. <}
+     .sublen. = {rpn "\.ps_file." strlen 64 inf}
+     draw label {rpn "..." "\.ps_file." strlen .sublen. - .sublen. "\.ps_file." substr strcat} at {rpn .leftmargin. .rightmargin. + .diagramsize. + ..fontsize.. 2.5 * pttocm -} .infomargin. cm rotated 90
+   else
+     draw label "\.ps_file." at {rpn .leftmargin. .rightmargin. + .diagramsize. + ..fontsize.. 2.5 * pttocm -} .infomargin. cm rotated 90
+   end if
+   draw label "\.time."    at {rpn .leftmargin. .rightmargin. + .diagramsize. + ..fontsize.. pttocm -} .infomargin. cm rotated 90
+
+
+  end if
+}
+
+#-------------------------------------------------------------------------
+`the_axes'
+{
+  set axes style 1
+  set color black
+  set tics in
+  set line width axis 0.5
+  set font size .tickfont.
+  set x name ""
+  set y name ""
+  
+  set clip postscript off
+
+
+  if .secondy.
+    delete y scale
+    set y format "\y2format"
+    set y type \y2type
+    if {rpn "log" "\y2type" ==}
+      if {rpn .y2start. .y2end. >}
+        set y axis .y2start. .y2end. .y2biginc. .y2smlinc.
+      else
+        set y axis .y2start. .y2end.
+      end if
+    else
+      set y axis .y2start. .y2end. .y2biginc. .y2smlinc. labeling .y2start.
+    end if
+    draw y axis at right
+  end if
+
+  delete y scale
+  if .axislabely.
+    set y format "\yformat"
+  else
+    set y format off
+  end if
+  set y type \ytype
+  if {rpn "log" "\ytype" ==}
+    if {rpn .ystart. .yend. >}
+      set y axis .ystart. .yend. .ybiginc. .ysmlinc.
+    else
+      set y axis .ystart. .yend.
+    end if
+  else
+    set y axis .ystart. .yend. .ybiginc. .ysmlinc. labeling .ystart.
+  end if
+
+  draw y axis at left
+
+  if {rpn .secondy. not}
+    set y format off
+    draw y axis at right
+  end if
+
+  if .secondx.
+    delete x scale
+    set x format "\x2format"
+    set x type \x2type
+    if {rpn "log" "\x2type" ==}
+      if {rpn .x2start. .x2end. >}
+        set x axis .x2start. .x2end. .x2biginc. .x2smlinc.
+      else
+        set x axis .x2start. .x2end.
+      end if
+    else
+      set x axis .x2start. .x2end. .x2biginc. .x2smlinc. labeling .x2start.
+    end if
+    draw x axis at top
+  end if
+  
+  delete x scale
+  if .axislabelx.
+    set x format "\xformat"
+  else
+    set x format off
+  end if
+  set x type \xtype
+  if {rpn "log" "\xtype" ==}
+    if {rpn .xstart. .xend. >}
+      set x axis .xstart. .xend. .xbiginc. .xsmlinc.
+    else
+      set x axis .xstart. .xend.
+    end if
+  else
+    set x axis .xstart. .xend. .xbiginc. .xsmlinc. labeling .xstart.
+  end if
+
+  draw x axis at bottom
+
+  if {rpn .secondx. not}
+    set x format off
+    draw x axis at top
+  end if
+
+}
+
+#-------------------------------------------------------------------------
+`the_dataframe'
+{
+  set font size .tickfont.
+
+  delete x scale
+  set x type \xtype
+  if {rpn "log" "\xtype" ==}
+    if {rpn .xstart. .xend. >}
+      set x axis .xstart. .xend. .xbiginc. .xsmlinc.
+    else
+      set x axis .xstart. .xend.
+    end if
+  else
+    set x axis .xstart. .xend. .xbiginc. .xsmlinc. labeling .xstart.
+  end if
+
+  delete y scale
+  set y type \ytype
+  if {rpn "log" "\ytype" ==}
+    if {rpn .ystart. .yend. >}
+      set y axis .ystart. .yend. .ybiginc. .ysmlinc.
+    else
+      set y axis .ystart. .yend.
+    end if
+  else
+    set y axis .ystart. .yend. .ybiginc. .ysmlinc. labeling .ystart.
+  end if
+}
+
+#-------------------------------------------------------------------------
+`the_datalayout'
+{
+  set font size .tickfont.
+  set symbol size .symbolsize.
+  set line width symbol {rpn .symbolsize. 10 *}
+  set line width .linewidth.
+  set line join 1                     # round join
+  set line cap 1                      # round cap
+}
+
+
+
+# ----- line -----
+\arg = {rpn .arg. 1 + argv}
+if {rpn "line" "\arg" ==}                        # check for optional drawing restriction
+  .line. = 1
+  \line  = {rpn .arg. 2 + argv}                  # read line style
+  .arg. += 2
+else if {rpn "stepped" "\arg" ==}                # check for optional drawing restriction
+  .steps. = 1
+  \position  = {rpn .arg. 2 + argv}              # read position of original data
+  if {rpn "left" "\position" == "start" "\position" == or "beginning" "\position" == or}
+    \position = "left"
+  else if {rpn "right" "\position" == "end" "\position" == or}
+    \position = "right"
+  else if {rpn "center" "\position" == "centre" "\position" == or "middle" "\position" == or}
+    \position = "center"
+  end if
+  .arg. += 2
+end if
+
+# ----- linewidth -----
+
+get_number "linewidth" &.arg. &.linewidth. 1.5
+
+# ----- symbol -----
+\arg = {rpn .arg. 1 + argv}
+if {rpn "symbol" "\arg" ==}                      # check for optional drawing restriction
+ .marker. = 1
+ \symbol  = {rpn .arg. 2 + argv}                 # read symbol name
+ .arg. += 2
+end if
+
+if {rpn .line. .steps. .marker. or or not}       # standard case
+ .line.   = 1
+ \line  = "solid"
+ .steps.  = 0
+ .marker. = 1
+ \symbol  = "wheel"
+else
+  if {rpn .marker. "own" "\symbol" == and}       # symbol per data set
+   .ownsymbol. = 1
+   .argcount. += 1
+  end if
+  if {rpn .line. "own" "\line" == and}           # line style per data set
+   .ownline.   = 1
+   .argcount. += 1
+  end if
+end if
+
+# ----- symbolsize -----
+
+get_number "symbolsize" &.arg. &.symbolsize. 0.15
+
+# ----- color(map) -----
+\arg = {rpn .arg. 1 + argv}
+if {rpn "colormap" "\arg" ==}                    # check for optional drawing restriction
+  .colormap. = 1
+  .color. = 0
+  \colormap = {rpn .arg. 2 + argv}               # read colormap
+  .arg. += 2
+else if {rpn "color" "\arg" ==}                  # check for optional drawing restriction
+  .color. = 1
+  .colormap. = 0
+  \color = {rpn .arg. 2 + argv}                  # read color
+  if {rpn "own" "\color" ==}                     # color per data set
+    .owncolor. = 1
+    .argcount. += 1
+  else if {rpn "z" 0 1 "\color" substr ==}       # color from z data set
+    .colorByData. = 1
+    if {rpn ":" 1 2 "\color" substr ==}          # hue given?
+      .zhue. = {rpn 2 "\color" strlen 2 - "\color" substr atof}
+      .hasZhue. = 1
+    end if
+    \color = "black"
+    .argcount. += 1
+  end if
+  .arg. += 2
+end if
+
+# ----- label -----
+
+get_logical "label" &.arg. &.curvelabel. 0
+.argcount. += .curvelabel.
+
+# ----- noaxes -----
+
+get_bitfield "noaxes" "noxaxis" "noyaxis" &.arg. &.axislabelx. &.axislabely.
+#get_logical "noaxes" &.arg. &.axeslabel. 0
+.axislabelx. = {rpn .axislabelx. not}
+.axislabely. = {rpn .axislabely. not}
+
+# ----- abs -----
+
+get_bitfield "abs" "absx" "absy" &.arg. &.absx. &.absy.
+
+# ----- second set of axes -----
+
+get_bitfield "second" "secondx" "secondy" &.arg. &.secondx. &.secondy.
+
+if .secondx.
+  \x2type      = {rpn  1 .arg. + argv} 
+  \x2label     = {rpn  2 .arg. + argv} 
+  \x2format    = {rpn  3 .arg. + argv}
+  .x2start.    = {rpn  4 .arg. + argv atof}
+  .x2end.      = {rpn  5 .arg. + argv atof}
+  .x2Nincs.    = {rpn  6 .arg. + argv atof}
+  .x2Nsubincs. = {rpn  7 .arg. + argv atof}
+  if {rpn "log" "\x2type" ==}
+    .x2biginc. = {rpn .x2end. log .x2start. log - .x2Nincs. 1 sup / floor 1 sup}
+    .x2smlinc. = .x2Nsubincs.                  # for log axes negative sign suppresses subticks
+    sprintf \x2tickmin "%.0f" {rpn .x2start. log}
+    sprintf \x2tickmax "%.0f" {rpn .x2end. log}
+    \x2tickmin = {rpn "10" "\x2tickmin" strcat} 
+    \x2tickmax = {rpn "10" "\x2tickmax" strcat} 
+  else
+    .x2biginc. = {rpn .x2end. .x2start. - .x2Nincs. 1 sup /}
+    .x2smlinc. = {rpn .x2biginc. 1 .x2Nsubincs. sup /}
+    sprintf \x2tickmin "\x2format" .x2start.
+    sprintf \x2tickmax "\x2format" .x2end.
+  end if
+  .arg. += 7
+end if
+
+if .secondy.
+  \y2type      = {rpn  1 .arg. + argv} 
+  \y2label     = {rpn  2 .arg. + argv} 
+  \y2format    = {rpn  3 .arg. + argv}
+  .y2start.    = {rpn  4 .arg. + argv atof}
+  .y2end.      = {rpn  5 .arg. + argv atof}
+  .y2Nincs.    = {rpn  6 .arg. + argv atof}
+  .y2Nsubincs. = {rpn  7 .arg. + argv atof}
+  if {rpn "log" "\y2type" ==}
+    .y2biginc. = {rpn .y2end. log .y2start. log - .y2Nincs. 1 sup / floor 1 sup}
+    .y2smlinc. = .y2Nsubincs.                  # for log axes negative sign suppresses subticks
+    sprintf \y2tickmin "%.0f" {rpn .y2start. log}
+    sprintf \y2tickmax "%.0f" {rpn .y2end. log}
+    \y2tickmin = {rpn "10" "\y2tickmin" strcat} 
+    \y2tickmax = {rpn "10" "\y2tickmax" strcat} 
+  else
+    .y2biginc. = {rpn .y2end. .y2start. - .y2Nincs. 1 sup /}
+    .y2smlinc. = {rpn .y2biginc. 1 .y2Nsubincs. sup /}
+    sprintf \y2tickmin "\y2format" .y2start.
+    sprintf \y2tickmax "\y2format" .y2end.
+  end if
+  .arg. += 7
+end if
+
+# ----- gap -----
+
+get_number "gap" &.arg. &.gap. "\.missingvalue."
+if {rpn .gap. -1 < .gap. 100 > and} # prevent for optional value indicating a gap in data
+  show "dangerous gap value: " .gap.
+else
+  set missing value .gap.    # read "missing value"
+end if
+
+# ----- clip -----
+
+get_logical "clip"    &.arg. &.clip.    0
+
+# ----- tight -----
+
+get_logical "tight"    &.arg. &.tight.    0
+
+# ----- aspect -----
+
+get_number  "aspect"  &.arg. &.aspect.  1.0
+
+# ----- frame -----
+
+get_logical "frame"   &.arg. &.frame.   0
+
+
+# ++++++++++ option parsing done ++++++++++++
+
+.datacount. = {rpn argc 1 - .mandatorycount. .arg. + -} 
+if {rpn 0 .datacount. .argcount. remainder == 0 .datacount. >= and}
+ .nFiles. = {rpn .datacount. .argcount. /}
+ if ..debug..
+   show "nFiles " .nFiles.
+ end if
+else
+ show ""
+ show "usage: plot.gri [ 'line' (name | 'own') | 'stepped' where ]"
+ show "                [ 'linewidth' value ]"
+ show "                [ 'symbol' (name | 'own') ]"
+ show "                [ 'symbolsize' value ]"
+ show "                [ 'colormap' name | 'color' (name | 'own' | 'z[:hue]') ]"
+ show "                [ 'label' ]"
+ show "                [ 'noaxes' | 'noxaxis' | 'noyaxis' ]"
+ show "                [ 'abs' | 'absx' | 'absy' ]"
+ show "                [ 'second' | 'secondx' | 'secondy' & "
+ show "                  x2.type  x2.label x2.format x2.start x2.end x2.Nincs x2.Nsubincs"
+ show "                  y2.type  y2.label y2.format y2.start y2.end y2.Nincs x2.Nsubincs ]"
+ show "                [ 'gap' value ]"
+ show "                [ 'clip' ]"
+ show "                [ 'tight' ]"
+ show "                [ 'aspect' y/x-ratio ]"
+ show "                ['frame'] size "
+ show "                x.type  x.label x.format"
+ show "                x.start x.end   x.Nincs x.Nsubincs x.scaling"
+ show "                y.type  y.label y.format"
+ show "                y.start y.end   y.Nincs y.Nsubincs y.scaling"
+ show "                filename col.x col.y [label] [ownLine] [ownSymbol] [ownColor|col.color]"
+ show "               [filename col.x col.y [label] [ownLine] [ownSymbol] [ownColor|col.color]]"
+ show "                ..."
+ show ""
+ show "Nincs:          number of increments for major tick labeling"
+ show "Nsubincs:       number of increments for minor ticking"
+ show "scaling:        factor by which data is pre-multiplied"
+ show ""
+ show "valid lines:    none, solid (default), dashed, dotted, dash-dotted"
+ show ""
+ show "valid symbols:  none, wheel (default), plus, times, box, circ, diamond,"
+ show "                triangleup, triangleright, triangledown, triangleleft,"
+ show "                asterisk, star, filledbox, bullet, dot, filleddiamond,"
+ show "                filledtriangleup, filledtriangleright,"
+ show "                filledtriangledown, filledtriangleleft"
+ show ""
+ show "valid colormaps: gray (default), red, green, blue, cyan, magenta, yellow"
+ show ""
+ show "valid colors:   black (default), white, red, green, blue,"
+ show "                cyan, magenta, yellow, brown, tan, orange,"
+ show "                LightGray, darkslategray, ForestGreen, skyblue"
+ show "                'rgb 0..1 0..1 0..1'"
+ show "                'hsb 0..1 0..1 0..1'"
+ show ""
+ show "                Color can be drawn from a data column (with values from 0 to 1)"
+ show "                if special color code 'z' is selected."
+ show ""
+ if ..debug..
+   show "expecting " .argcount. " per data having " .datacount.
+   .i. = 0
+   while {rpn .datacount. .i. <}
+     show {rpn .i. .mandatorycount. + .arg. + 1 + } ":" {rpn .i. .mandatorycount. + .arg. + 1 + argv}
+     .i. += 1
+   end while
+ end if
+ quit
+end if
+
+.size.       = {rpn  1 .arg. + argv atof}
+\xtype       = {rpn  2 .arg. + argv} 
+\xlabel      = {rpn  3 .arg. + argv} 
+\xformat     = {rpn  4 .arg. + argv}
+.xstart.     = {rpn  5 .arg. + argv atof}
+.xend.       = {rpn  6 .arg. + argv atof}
+.xNincs.     = {rpn  7 .arg. + argv atof}
+.xNsubincs.  = {rpn  8 .arg. + argv atof}
+.xscale.     = {rpn  9 .arg. + argv atof}
+if {rpn "log" "\xtype" ==}
+  .xbiginc. = {rpn .xend. log .xstart. log - .xNincs. 1 sup / floor 1 sup}
+  .xsmlinc. = .xNsubincs.                  # for log axes negative sign suppresses subticks
+  sprintf \xtickmin "%.0f" {rpn .xstart. log}
+  sprintf \xtickmax "%.0f" {rpn .xend. log}
+  \xtickmin = {rpn "10" "\xtickmin" strcat} 
+  \xtickmax = {rpn "10" "\xtickmax" strcat} 
+else
+  .xbiginc. = {rpn .xend. .xstart. - .xNincs. 1 sup /}
+  .xsmlinc. = {rpn .xbiginc. 1 .xNsubincs. sup /}
+  sprintf \xtickmin "\xformat" .xstart.
+  sprintf \xtickmax "\xformat" .xend.
+end if
+
+\ytype      = {rpn 10 .arg. + argv}
+\ylabel     = {rpn 11 .arg. + argv}
+\yformat    = {rpn 12 .arg. + argv}
+.ystart.    = {rpn 13 .arg. + argv atof}
+.yend.      = {rpn 14 .arg. + argv atof}
+.yNincs.    = {rpn 15 .arg. + argv atof}
+.yNsubincs. = {rpn 16 .arg. + argv atof}
+.yscale.    = {rpn 17 .arg. + argv atof}
+if {rpn "log" "\ytype" ==}
+  .ybiginc. = {rpn .yend. log .ystart. log - .yNincs. 1 sup / floor 1 sup}
+  .ysmlinc. = .yNsubincs.                 # for log axes negative sign suppresses subticks
+  sprintf \ytickmin "%.0f" {rpn .ystart. log}
+  sprintf \ytickmax "%.0f" {rpn .yend. log}
+  \ytickmin = {rpn "10" "\ytickmin" strcat} 
+  \ytickmax = {rpn "10" "\ytickmax" strcat} 
+else
+  .ybiginc. = {rpn .yend. .ystart. - .yNincs. 1 sup /}
+  .ysmlinc. = {rpn .ybiginc. 1 .yNsubincs. sup /}
+  sprintf \ytickmin "\yformat" .ystart.
+  sprintf \ytickmax "\yformat" .yend.
+end if
+
+.arg. += .mandatorycount.
+
+if ..debug..
+  show "size " .size.
+  show "xtype " "\xtype"
+  show "xlabel " "\xlabel"
+  show "xformat " "\xformat"
+  show "xstart " .xstart.
+  show "xend " .xend.
+  show "xNincs " .xNincs.
+  show "xNsubincs " .xNsubincs.
+  show "xscale " .xscale.
+  show "ytype " "\ytype"
+  show "ylabel " "\ylabel"
+  show "yformat " "\yformat"
+  show "ystart " .ystart.
+  show "yend " .yend.
+  show "yNincs " .yNincs.
+  show "yNsubincs " .yNsubincs.
+  show "yscale " .yscale.
+  show "argcount " .argcount.
+end if
+
+
+# ----- diagram metrics -----
+
+the_layout
+
+# ----- info label -----
+
+the_info
+
+# ----- axes behind data -----
+
+if .clip.
+  the_dataframe
+  set clip postscript on
+  set axes style none
+else
+  the_axes
+end if
+
+# ----- data layout -----
+
+the_datalayout
+
+# +++++ loop over input data +++++
+
+.i. = 0
+while {rpn .nFiles. .i. <}
+ 
+ # ------------ read arguments for this data set -------------
+
+ \filename = {rpn 1 .arg. + argv}
+ .xcol.    = {rpn 2 .arg. + argv atof}
+ .ycol.    = {rpn 3 .arg. + argv atof}
+ if .curvelabel.
+   \label  = {rpn 4 .arg. + argv}
+ end if
+ if .ownline.
+   \line   = {rpn 4 .curvelabel. .arg. + + argv}
+ end if
+ if .ownsymbol.
+   \symbol = {rpn 4 .curvelabel. .ownline. .arg. + + + argv}
+ end if
+ if .owncolor.
+   \color  = {rpn 4 .curvelabel. .ownline. .ownsymbol. .arg. + + + + argv}
+ else if .colorByData.
+   .zcol.  = {rpn 4 .curvelabel. .ownline. .ownsymbol. .arg. + + + + argv atof}
+ end if
+
+ show "plot.gri: \filename"
+
+
+ # ------------ set color --------------
+ 
+ if .color.
+   set color \color
+ else if .colormap.                                 # loop through colormap with constant hue, increasing saturation and decreasing brightness
+   .saturation. = {rpn .i. 1 + .nFiles. /}          # from pure to no hue visible
+   .brightness. = {rpn 1 .i. .nFiles. / - sqrt }    # from bright towards dark
+   if {rpn "red" "\colormap" ==}
+     .hue. = 0
+   else if {rpn "green" "\colormap" ==}
+     .hue. = 0.333
+   else if {rpn "blue" "\colormap" ==}
+     .hue. = 0.667
+   else if {rpn "yellow" "\colormap" ==}
+     .hue. = 0.167
+   else if {rpn "cyan" "\colormap" ==}
+     .hue. = 0.5
+   else if {rpn "magenta" "\colormap" ==}
+     .hue. = 0.833
+   else # default is grayscale
+     .hue. = 0
+     .saturation. = 0
+     .brightness. = {rpn 1 .i. 1 + .nFiles. / -}
+   end if
+   set color hsb .hue. .saturation. .brightness.
+ end if
+ 
+
+ # ------------- draw stepped line --------------
+ 
+ if .steps.
+  sprintf \xcol "%.0f" .xcol.
+  sprintf \ycol "%.0f" .ycol.
+  open "make_stepfunction \"\filename\" -p \"\position\" \"\xcol\" \"\ycol\" |"
+  read columns x y
+  
+  x *= .xscale.
+  y *= .yscale.
+  
+  .j. = 0 
+  while {rpn .j. ..num_col_data.. >} 
+   if .absx.
+     {rpn x .j. @ abs .j. "x" = } 
+   end if
+   if .absy.
+     {rpn y .j. @ abs .j. "y" = } 
+   end if
+   .j. += 1 
+  end while 
+
+  draw curve
+ end if
+ 
+ open "\filename"
+
+
+ # ----------- draw line -----------
+
+ if {rpn .line. "none" "\line" == ! &}
+  rewind
+  read .skip. \heading
+  if {rpn 0 4 "\heading" substr "head" ==}
+    skip .skip.
+  else
+    rewind
+  end if
+
+  read columns x=.xcol. y=.ycol.
+
+  x *= .xscale.
+  y *= .yscale.
+
+  .j. = 0 
+  while {rpn .j. ..num_col_data.. >} 
+   if .absx.
+     {rpn x .j. @ abs .j. "x" = } 
+   end if
+   if .absy.
+     {rpn y .j. @ abs .j. "y" = } 
+   end if
+   .j. += 1 
+  end while 
+
+  if {rpn "solid" "\line" ==}
+    set dash off
+  else if {rpn "dashed" "\line" ==}
+    set dash {rpn ..linewidth.. pttocm 3 *} {rpn ..linewidth.. pttocm 3 *}
+  else if {rpn "dotted" "\line" ==}
+    set dash {rpn ..linewidth.. pttocm 0.0 *} {rpn ..linewidth.. pttocm 2 *}
+  else if {rpn "dash-dotted" "\line" ==}
+    set dash {rpn ..linewidth.. pttocm 3 *} {rpn ..linewidth.. pttocm 2 *} {rpn ..linewidth.. pttocm 0.0 *} {rpn ..linewidth.. pttocm 2 *}
+  end if
+
+  draw curve
+ end if
+
+ 
+ # ----------------- draw marked points ---------------
+
+ if .marker.
+  rewind
+  read .skip. \heading
+  if {rpn 0 4 "\heading" substr "head" ==}
+    skip .skip.
+  else
+    rewind
+  end if
+
+  if .colorByData.
+    read columns x=.xcol. y=.ycol. z=.zcol.
+  else
+    read columns x=.xcol. y=.ycol.
+  end if
+
+  x *= .xscale.
+  y *= .yscale.
+
+  .j. = 0 
+  while {rpn .j. ..num_col_data.. >} 
+   if .absx.
+     {rpn x .j. @ abs .j. "x" = } 
+   end if
+   if .absy.
+     {rpn y .j. @ abs .j. "y" = } 
+   end if
+   .j. += 1 
+  end while 
+
+  set dash off
+  if {rpn "wheel" "\symbol" ==}      # "wheel" is special case and composed of two individual symbols
+    set color white                  # white bullet plus...
+    draw symbol bullet
+    if .color.                       # colored circle
+      set color \color
+    else
+      set color hsb .hue. .saturation. .brightness.
+    end if
+    draw symbol circ
+  else if {rpn "dot" "\symbol" ==} 
+    set symbol size {rpn ..symbolsize.. 2 /}
+    if .colorByData.
+      if .hasZhue.
+        draw symbol \symbol hue .zhue. brightness z saturation z
+      else
+        draw symbol \symbol graylevel z
+      
+      end if
+    else
+      draw symbol bullet
+    end if
+    set symbol size {rpn ..symbolsize.. 2 *}
+  else if {rpn "none" "\symbol" == }
+  else 
+    if .colorByData.
+      draw symbol \symbol hue .zhue. brightness z saturation z
+    else
+      draw symbol \symbol
+    end if
+  end if
+ end if
+
+
+ # ------------- draw label ----------------
+
+ if .curvelabel.
+   draw label for last curve "\label" 
+ end if
+ 
+
+ # ---------- increase counter ---------
+
+ .i.   += 1
+ .arg. += .argcount.
+
+end while
+
+
+# +++++ draw axes in front of data +++++
+
+
+if .clip. 
+  the_axes
+end if
+
+# ----- axis labels -----
+
+set font size .labelfont.
+set color black
+
+if .secondx.
+  draw label "\x2label" centered at {rpn .leftmargin. .diagramsize. 2 / +} {rpn .bottommargin. .topmargin. + .aspect. .diagramsize. * + "\x2label" ascent .labelfont. 3 / pttocm + -} cm
+end if
+if .axislabelx.
+  draw label "\xlabel"  centered at {rpn .leftmargin. .diagramsize. 2 / +} {rpn "\xlabel" descent .labelfont. 3 / pttocm +} cm
+end if
+if .secondy.
+  draw label "\y2label" centered at {rpn .leftmargin. .rightmargin. + .diagramsize. + "\y2label" descent .labelfont. 3 / pttocm + -} {rpn .bottommargin. .aspect. .diagramsize. * 2 / +} cm rotated 90
+end if
+if .axislabely.
+  draw label "\ylabel"  centered at {rpn "\ylabel" ascent .labelfont. 3 / pttocm +}                                                  {rpn .bottommargin. .aspect. .diagramsize. * 2 / +} cm rotated 90
+end if
