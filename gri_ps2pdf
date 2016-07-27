@@ -1,0 +1,62 @@
+#!/usr/bin/env python
+
+import os,sys,re,subprocess
+from optparse import OptionParser
+
+parser = OptionParser(usage='%prog [options] postscriptfile[s]')
+parser.add_option('-k','--keep', action='store_true', dest='keep', \
+			      help='keep both postscript versions of original [%default]')
+parser.add_option('-e','--keepeps', action='store_true', dest='keepeps', \
+			      help='keep encapsulated postscript versions of original [%default]')
+parser.add_option('-p','--keepps', action='store_true', dest='keepps', \
+			      help='keep original postscript version [%default]')
+parser.set_defaults(keep    = False)
+parser.set_defaults(keepeps = False)
+parser.set_defaults(keepps  = False)
+
+(options, inNames) = parser.parse_args()
+
+if not inNames:
+  parser.error('no file specified...')
+
+for inName in inNames:
+  if os.path.lexists(inName):
+    outName = os.path.splitext(inName)[0] + '.eps'
+    dict = {}
+    inFile = open(inName)
+    input = inFile.readlines()
+    inFile.close()
+    print inName
+    while input[-1].strip() != '%%Trailer':
+      line = input.pop().strip()
+      m = re.search(r'^\%\%(\w*):\s+(.*)$', line)
+      if (m != None):
+        dict[m.group(1)] = m.group(2)
+
+    if os.path.lexists(outName):
+      os.remove(outName)
+    outFile = open(outName,'w')
+    for line in input:
+      line = line.strip()
+      m = re.search(r'^\%\%(\w*):\s+\(atend\)$', line)
+      if (m != None):
+        line = '%%%%%s: %s'%(m.group(1),dict[m.group(1)])
+      elif re.search(r'^\%\%TemplateBox:.*?$', line) != None:
+        line = '%%%%TemplateBox: %s'%dict['BoundingBox']
+      outFile.write('%s\n'%line)
+    outFile.close()
+    try:
+      subprocess.call(["pstopdf",outName])
+    except:
+      try:
+        subprocess.call(["epstopdf",outName])
+        print "use 'epstopdf' instead of 'pstopdf'"
+      except:
+        subprocess.call(["ps2pdf","-dEPSCrop",outName])
+        print "use 'ps2pdf' instead of 'pstopdf'"
+
+    pdfName = os.path.splitext(inName)[0]+'.pdf'
+    if not (options.keep or options.keepeps):                       os.remove(outName)
+    if (not (options.keep or options.keepps)) \
+        and os.path.exists(pdfName) \
+        and os.path.getmtime(pdfName) >= os.path.getmtime(inName) : os.remove(inName)
