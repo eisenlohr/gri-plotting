@@ -52,12 +52,10 @@ if m:
   headerlines = int(m.group(1))
   passOn  = [file['input'].readline() for i in range(1,headerlines)]
   headers = re.findall(r'(?:[^\s,"]|"(?:\\.|[^"])*")+', file['input'].readline())
-#  headers = file['input'].readline().split()
 else:
   headerlines = 1
   passOn  = []
   headers = re.findall(r'(?:[^\s,"]|"(?:\\.|[^"])*")+', firstline)
-#  headers = firstline.split()
 file['input'].close()
 
 headers = map(lambda s:re.sub(r'^["\']|["\']$', '', s), headers)
