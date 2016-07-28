@@ -119,13 +119,19 @@ else
 end if
 
 .arg. += 1
-\arg = {rpn .arg. argv}               # 'ABS' | 'POS' | 'NEG'
+\arg = {rpn .arg. argv}               # 'ABS'
 if {rpn "abs" "\arg" ==}              # check for absolute restriction
- \restriction = "--absolute"
-else if {rpn "pos" "\arg" ==}         # check for positive restriction
- \restriction = "--positive"
+ \restriction = {rpn "\restriction" " --absolute" strcat}
+else
+ .arg. -= 1                           # try something different
+end if
+
+.arg. += 1
+\arg = {rpn .arg. argv}               # 'POS' | 'NEG'
+if {rpn "pos" "\arg" ==}              # check for positive restriction
+ \restriction = {rpn "\restriction" " --positive" strcat}
 else if {rpn "neg" "\arg" ==}         # check for negative restriction
- \restriction = "--negative"
+ \restriction = {rpn "\restriction" " --negative" strcat}
 else
  .arg. -= 1                           # try something different
 end if
@@ -166,7 +172,8 @@ else
  show "       [ 'colormap' name |          --> employ named colormap"
  show "         'color'   (name | 'own') ] --> fixed color"
  show "       [ 'label' ]                  --> with label"
- show "       [ 'abs' | 'pos' | 'neg']     --> use absolute | positive | negative values"
+ show "       [ 'abs' ]                    --> use absolute values"
+ show "       [ 'pos' | 'neg']             --> use positive | negative values"
  show "       [ 'aspect' y/x-ratio ]       --> frame aspect ratio"
  show "       [ 'frame' ] size             --> diagram (frame) size in cm"
  show "       x.type x.label x.format      --> ('linear' | 'log') theLabel %f"
