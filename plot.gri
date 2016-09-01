@@ -132,7 +132,7 @@ new \
   end if
 
   if .axislabely.
-    .leftmargin.   = {rpn "\ytickmin" width "\ytickmax" width sup "\ylabel" ascent "\ylabel" descent + 3 * + .leftmargin. sup}
+    .leftmargin.   = {rpn "\ytickmin" width "\ytickmax" width sup "\ylabel" ascent "\ylabel" descent + 2 * + .leftmargin. sup}
     .bottommargin. = {rpn "\ytickmin" ascent "\ytickmin" descent + .bottommargin. sup}
     .topmargin.    = {rpn "\ytickmax" ascent "\ytickmax" descent + .topmargin. sup}
   end if
@@ -382,7 +382,7 @@ else if {rpn "color" "\arg" ==}                  # check for optional drawing re
     .argcount. += 1
   else if {rpn "z" 0 1 "\color" substr ==}       # color from z data set
     .colorByData. = 1
-    if {rpn ":" 1 2 "\color" substr ==}          # hue given?
+    if {rpn ":" 1 1 "\color" substr ==}          # hue given?
       .zhue. = {rpn 2 "\color" strlen 2 - "\color" substr atof}
       .hasZhue. = 1
     end if
@@ -815,10 +815,9 @@ while {rpn .nFiles. .i. <}
     set symbol size {rpn ..symbolsize.. 2 /}
     if .colorByData.
       if .hasZhue.
-        draw symbol \symbol hue .zhue. brightness z saturation z
+        draw symbol bullet colorrange .zhue.
       else
-        draw symbol \symbol graylevel z
-      
+        draw symbol bullet graylevel z
       end if
     else
       draw symbol bullet
@@ -827,7 +826,11 @@ while {rpn .nFiles. .i. <}
   else if {rpn "none" "\symbol" == }
   else 
     if .colorByData.
-      draw symbol \symbol hue .zhue. brightness z saturation z
+      if .hasZhue.
+        draw symbol \symbol colorrange .zhue.
+      else
+        draw symbol \symbol graylevel z
+      end if
     else
       draw symbol \symbol
     end if
