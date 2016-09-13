@@ -66,9 +66,9 @@ if options.weight == None:
   data[:,1] = 1
 
 if options.noise > 0 and options.noise <= 10:              # if noise requested 
-  data =  np.repeat(data,options.noise,0)
+  data =  np.repeat(data,options.noise,axis=0)
   np.random.seed()
-  noise = min(abs(data[:,0]))*(np.random.rand(len(data)*options.noise)-0.5)    # random scatter between +1 and -1
+  noise = min(abs(data[:,0]))*(np.random.rand(len(data))-0.5)    # random scatter by half of minimum value in dataset
   data[:,0] += noise
 
 ind = np.lexsort((data[:,1],data[:,0]))                    # sort the data small to large
