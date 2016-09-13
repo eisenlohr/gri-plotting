@@ -1,4 +1,4 @@
-# Prerequisites:
+# Prerequisites
 
 * install the plotting engine `gri` (needs `autoconf` and `automake` packages)
 
@@ -23,6 +23,6 @@ git clone git@gitlab.msu.edu:metal/gri-plotting.git
 
 * add the location of `gri-plotting` to your `$PATH`
 
-# Useful configurations:
+# Useful configurations
 
 * define an environment variable `$GRI` pointing to the location of the repository clone
