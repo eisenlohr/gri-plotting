@@ -46,14 +46,14 @@ for inName in inNames:
       outFile.write('%s\n'%line)
     outFile.close()
     try:
-      subprocess.call(["pstopdf",outName])
+      subprocess.call(["epstopdf",outName])
     except:
       try:
-        subprocess.call(["epstopdf",outName])
-        print "use 'epstopdf' instead of 'pstopdf'"
+        subprocess.call(["pstopdf",outName])
+        print "use 'pstopdf' instead of 'epstopdf'"
       except:
         subprocess.call(["ps2pdf","-dEPSCrop",outName])
-        print "use 'ps2pdf' instead of 'pstopdf'"
+        print "use 'ps2pdf' instead of 'epstopdf'"
 
     pdfName = os.path.splitext(inName)[0]+'.pdf'
     if not (options.keep or options.keepeps):                       os.remove(outName)
