@@ -21,9 +21,10 @@ class MyOption(Option):
     else:
       Option.take_action(self, action, dest, opt, value, values, parser)
 
+# -----------------------------
 
 parser = OptionParser(option_class=MyOption, usage='%prog [options] label(s) [datafile]', description = """
-return datafile name and ID(s) of label(s) to be used with plot[_distribution].gri
+return datafile name and ID(s) of all valid label(s) to be used with plot[_distribution].gri
 """)
 
 parser.add_option('-c','--comma',
@@ -37,29 +38,29 @@ parser.set_defaults(separator = ' ')
 (options, columns) = parser.parse_args()
 
 if len(columns) < 1:
-  parser.print_help()
   parser.error('no labels specified.')
 
-if os.path.exists(columns[-1]):
+if not sys.stdin.isatty():
+  file = {'name':None, 'input':sys.stdin,}
+elif os.path.exists(columns[-1]):
   name = columns.pop()
   file = {'name':name, 'input':open(name),}
 else:
-  file = {'name':'STDIN', 'input':sys.stdin,}
+  parser.error('file "{}" not found.'.format(columns[-1]))
 
-firstline = file['input'].readline()
-m = re.search('(\d+)\s+head', firstline.lower())
-if m:
-  headerlines = int(m.group(1))
-  passOn  = [file['input'].readline() for i in range(1,headerlines)]
-  headers = re.findall(r'(?:[^\s,"]|"(?:\\.|[^"])*")+', file['input'].readline())
-else:
-  headerlines = 1
-  passOn  = []
-  headers = re.findall(r'(?:[^\s,"]|"(?:\\.|[^"])*")+', firstline)
+i = -1
+for line in file['input']:
+  i += 1
+  if i == 0:
+    m = re.search('(\d+)\s+head', line.lower())
+    target = int(m.group(1)) if m else 0
+  if i == target: break
+
 file['input'].close()
 
-headers = map(lambda s:re.sub(r'^["\']|["\']$', '', s), headers)
+headers = map(lambda s:re.sub(r'^["\']|["\']$', '', s), 
+              re.findall(r'(?:[^\s,"]|"(?:\\.|[^"])*")+', line))
 
-print '\t'.join([file['name']] +
+print '\t'.join(([file['name']] if file['name'] else []) +
                 [options.separator.join(map(str,[1+headers.index(heading) for heading in columns if heading in headers]))]
                )
