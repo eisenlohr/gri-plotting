@@ -532,7 +532,8 @@ else
  show "                filledtriangleup, filledtriangleright,"
  show "                filledtriangledown, filledtriangleleft"
  show ""
- show "valid colormaps: gray (default), red, green, blue, cyan, magenta, yellow"
+ show "valid colormaps: gray (default), red, green, blue,"
+ show "                 cyan, magenta, yellow, orange"
  show ""
  show "valid colors:   black (default), white, red, green, blue,"
  show "                cyan, magenta, yellow, brown, tan, orange,"
@@ -682,14 +683,16 @@ while {rpn .nFiles. .i. <}
    .brightness. = {rpn 1 .i. .nFiles. / - sqrt }    # from bright towards dark
    if {rpn "red" "\colormap" ==}
      .hue. = 0
-   else if {rpn "green" "\colormap" ==}
-     .hue. = 0.333
-   else if {rpn "blue" "\colormap" ==}
-     .hue. = 0.667
+   else if {rpn "orange" "\colormap" ==}
+     .hue. = 0.083
    else if {rpn "yellow" "\colormap" ==}
      .hue. = 0.167
+   else if {rpn "green" "\colormap" ==}
+     .hue. = 0.333
    else if {rpn "cyan" "\colormap" ==}
      .hue. = 0.5
+   else if {rpn "blue" "\colormap" ==}
+     .hue. = 0.667
    else if {rpn "magenta" "\colormap" ==}
      .hue. = 0.833
    else # default is grayscale
