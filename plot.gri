@@ -121,13 +121,13 @@ new \
   end if
 
   if .axislabelx.
-    .leftmargin.   = {rpn "\xtickmin" width .leftmargin. sup}
-    .rightmargin.  = {rpn "\xtickmax" width .rightmargin. sup}
+    .leftmargin.   = {rpn "\xtickmin" width 2 / .leftmargin. sup}
+    .rightmargin.  = {rpn "\xtickmax" width 2 / .rightmargin. sup}
     .bottommargin. = {rpn "\xlabel" ascent "\xlabel" descent + 3 * .bottommargin. sup}
   end if
   if .secondx.
-    .leftmargin.   = {rpn "\x2tickmin" width .leftmargin. sup}
-    .rightmargin.  = {rpn "\x2tickmax" width .rightmargin. sup}
+    .leftmargin.   = {rpn "\x2tickmin" width 2 / .leftmargin. sup}
+    .rightmargin.  = {rpn "\x2tickmax" width 2 / .rightmargin. sup}
     .topmargin.    = {rpn "\x2label" ascent "\x2label" descent + 3 * .topmargin. sup}
   end if
 
@@ -154,6 +154,13 @@ new \
   set y margin .bottommargin.
   set x size .diagramsize.
   set y size {rpn .aspect. .diagramsize. *}
+  
+  if ..debug..
+   show "margin left   " .leftmargin.
+   show "margin right  " .rightmargin.
+   show "margin top    " .topmargin.
+   show "margin bottom " .bottommargin.
+  end if
 }
 
 #-------------------------------------------------------------------------
