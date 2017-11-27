@@ -1,20 +1,36 @@
 .labelfont. = 11
 .tickfont. = 9
+.infofont. = 3
+.symbolsize. = 0.15
 
 .mandatorycount. = 9
-.argcount. = 2                       # default: filename column
+.argcount. = 2                                                            # filename column
 
-.noise. = 0
-
-\weighted = ""
+new \
+  .noise. \
+  .weightcolumn. \
+  \total \
+  .offset. \
+  .clip. \
+  .tight. \
+  .line. .ownline. \line .linewidth. \
+  .color. .owncolor. \color .colormap. \colormap \
+  .curvelabel. \
+  .axislabelx. .axislabely. \
+  .abs. \
+  .pos. \
+  .neg. \
+  .skip. \
+  .secondx. \
+  \ylabel \
+  .aspect. \
+  .frame. \
+  .arg.
 
 .total. = 0
-\total = ""
-\skip = ""
-\restriction = ""                    # --absolute, --positive, --negative for make_cumprob
 
-.offset. = 0
-\offset = ""
+.line.   = 0
+.ownline. = 0
 
 .color. = 0
 .owncolor. = 0
@@ -22,138 +38,440 @@
 .colormap. = 1
 \colormap = "gray"
 
-.steps.  = 0
 .curvelabel. = 0
-.weightcolumn. = 0
+.axislabelx. = 1
+.axislabely. = 1
+
+\weighted = ""
+\restriction = ""
+\skip = ""
+\offset = ""
 
 .arg. = 0
 
-.arg. += 1
-\arg = {rpn .arg. argv}               # 'PROCESS'
-if {rpn "process" "\arg" ==}          # check for optional processing indicator
- .arg. += 1
- \noise = {rpn .arg. argv}
- .noise. = {rpn "\noise" atof}
- if {rpn 10 .noise. > }
-  show "\noise steps restriction"
- else if {rpn 0 .noise. > }
-  show "\noise noisy copies"
- end if
-else
- .arg. -= 1                           # try something different
-end if
 
-.arg. += 1
-\arg = {rpn .arg. argv}               # 'WEIGHTED'
-if {rpn "weighted" "\arg" ==}         # check for optional flag
- \weighted = "--weight"
- .argcount. += 1
- .weightcolumn. = 1
-else
- .arg. -= 1                           # try something different
-end if
+# common functions
 
-.arg. += 1
-\arg = {rpn .arg. argv}               # 'TOTAL'
-if {rpn "total" "\arg" ==}            # check for string
- .arg. += 1
- \total = {rpn .arg. argv}            # read total
-  if {rpn "own" "\total" ==}          # total per data set
-    .total. = 1
-    .argcount. += 1
-    if ..debug..
-      show "own total"
+#-------------------------------------------------------------------------
+`get_string "\key" &.pos. &\string .default.'
+{
+  if {rpn "\.word1." \.word2. 1 + argv ==}        # check match
+    \.word3.  = {rpn \.word2. 2 + argv}           # assign value
+    \.word2. += 2                                 # advance position
+  else if {rpn \.words. 5 ==}                     # has default?
+    \.word3. = "\.word4."                         # assign if key not found
+  end if
+  if ..debug..
+    show "string \.word1.  \.word3.    default  \.word4. "
+  end if
+}
+
+#-------------------------------------------------------------------------
+`get_logical "\key" &.pos. &.flag. .default.'
+{
+  if {rpn "\.word1." \.word2. 1 + argv ==}        # check match
+    \.word3.  = 1                                 # make flag true
+    \.word2. += 1                                 # advance position
+  else if {rpn \.words. 5 ==}                     # has default?
+    \.word3. = \.word4.                           # assign if key not found
+  end if
+  if ..debug..
+    show "logical \.word1. " \.word3. "   default " \.word4.
+  end if
+}
+
+#-------------------------------------------------------------------------
+`get_number "\key" &.pos. &.number. .default.'
+{
+  if {rpn "\.word1." \.word2. 1 + argv ==}        # check match
+    \.word3.  = {rpn \.word2. 2 + argv atof}      # assign value
+    \.word2. += 2                                 # advance position
+  else if {rpn \.words. 5 ==}                     # has default?
+    \.word3. = \.word4.                           # assign if key not found
+  end if
+  if ..debug..
+    show "number \.word1. " \.word3. "   default " \.word4.
+  end if
+}
+
+#-------------------------------------------------------------------------
+`get_bitfield "\both" "\first" "\second" &.pos. &.first. &.second.'
+{
+  new \arg
+  \arg = {rpn \.word4. 1 + argv}
+  if      {rpn "\.word1." "\arg" ==}              # check both
+    \.word5. = 1
+    \.word6. = 1
+    \.word4. += 1                                 # advance position
+  else if {rpn "\.word2." "\arg" ==}              # check first
+    \.word5. = 1
+    \.word6. = 0
+    \.word4. += 1                                 # advance position
+  else if {rpn "\.word3." "\arg" ==}              # check second
+    \.word5. = 0
+    \.word6. = 1
+    \.word4. += 1                                 # advance position
+  else
+    \.word5. = 0
+    \.word6. = 0
+  end if
+  if ..debug..
+    show "bitfield \.word1. " \.word5. " " \.word6.
+  end if
+}
+
+
+#-------------------------------------------------------------------------
+`the_layout'
+{
+  set font to Times
+  set font size .labelfont.
+  set line width axis 0.5
+
+  if .tight.  
+    .leftmargin.    = {rpn ..linewidthaxis.. pttocm}
+    .rightmargin.   = {rpn ..linewidthaxis.. pttocm 2 *}
+    .bottommargin.  = {rpn ..linewidthaxis.. pttocm}
+    .topmargin.     = {rpn ..linewidthaxis.. pttocm 2 *}
+  else
+    .leftmargin.    = 0.4
+    .rightmargin.   = 0.4
+    .bottommargin.  = 0.4
+    .topmargin.     = 0.4
+  end if
+
+  if .axislabelx.
+    .leftmargin.   = {rpn "\xtickmin" width 2 / .leftmargin. sup}
+    .rightmargin.  = {rpn "\xtickmax" width 2 / .rightmargin. sup}
+    .bottommargin. = {rpn "\xlabel" ascent "\xlabel" descent + 3 * .bottommargin. sup}
+  end if
+  if .secondx.
+    .leftmargin.   = {rpn "\x2tickmin" width 2 / .leftmargin. sup}
+    .rightmargin.  = {rpn "\x2tickmax" width 2 / .rightmargin. sup}
+    .topmargin.    = {rpn "\x2label" ascent "\x2label" descent + 3 * .topmargin. sup}
+  end if
+
+  if .axislabely.
+    .leftmargin.   = {rpn "\ytickmin" width "\ytickmax" width sup "\ylabel" ascent "\ylabel" descent + 2 * + .leftmargin. sup}
+    .bottommargin. = {rpn "\ytickmin" ascent "\ytickmin" descent + .bottommargin. sup}
+    .topmargin.    = {rpn "\ytickmax" ascent "\ytickmax" descent + .topmargin. sup}
+  end if
+  
+  if .frame.
+    .diagramsize. = .size.
+    .size. = {rpn .leftmargin. .rightmargin. + .diagramsize. +}
+  else
+    .diagramsize. = {rpn .size. .leftmargin. .rightmargin. + - }
+  end if
+
+  set bounding box 0 0 .size. {rpn .bottommargin. .topmargin. + .aspect. .diagramsize. * +} cm
+  set x margin .leftmargin.
+  set y margin .bottommargin.
+  set x size .diagramsize.
+  set y size {rpn .aspect. .diagramsize. *}
+  
+  if ..debug..
+   show "margin left   " .leftmargin.
+   show "margin right  " .rightmargin.
+   show "margin top    " .topmargin.
+   show "margin bottom " .bottommargin.
+  end if
+}
+
+#-------------------------------------------------------------------------
+`the_info'
+{
+  if !..publication..
+   set font size .infofont.
+   .info. = 80
+   .infomargin. = .bottommargin.
+   if {rpn "\.ps_file." strlen .info. <}
+     .sublen. = {rpn "\.ps_file." strlen 64 inf}
+     draw label {rpn "..." "\.ps_file." strlen .sublen. - .sublen. "\.ps_file." substr strcat} at {rpn .leftmargin. .rightmargin. + .diagramsize. + ..fontsize.. 2.5 * pttocm -} .infomargin. cm rotated 90
+   else
+     draw label "\.ps_file." at {rpn .leftmargin. .rightmargin. + .diagramsize. + ..fontsize.. 2.5 * pttocm -} .infomargin. cm rotated 90
+   end if
+   draw label "\.time."    at {rpn .leftmargin. .rightmargin. + .diagramsize. + ..fontsize.. pttocm -} .infomargin. cm rotated 90
+
+  end if
+}
+
+#-------------------------------------------------------------------------
+`the_axes'
+{
+  set axes style 1
+  set color black
+  set tics in
+  set line width axis 0.5
+  set font size .tickfont.
+  set x name ""
+  set y name ""
+  
+  set clip postscript off
+
+
+  delete y scale
+  if .axislabely.
+    set y format "\yformat"
+  else
+    set y format off
+  end if
+  set y type \ytype
+  if {rpn "log" "\ytype" ==}
+    if {rpn .ystart. .yend. >}
+      set y axis .ystart. .yend. .ybiginc. .ysmlinc.
+    else
+      set y axis .ystart. .yend.
     end if
   else
-    \total  = "--total '\total'"
+    set y axis .ystart. .yend. .ybiginc. .ysmlinc. labeling .ystart.
   end if
-else
- .arg. -= 1                           # try something different
+
+  draw y axis at left
+
+  set y format off
+  draw y axis at right
+
+  if .secondx.
+    delete x scale
+    set x format "\x2format"
+    set x type \x2type
+    if {rpn "log" "\x2type" ==}
+      if {rpn .x2start. .x2end. >}
+        set x axis .x2start. .x2end. .x2biginc. .x2smlinc.
+      else
+        set x axis .x2start. .x2end.
+      end if
+    else
+      set x axis .x2start. .x2end. .x2biginc. .x2smlinc. labeling .x2start.
+    end if
+    draw x axis at top
+  end if
+  
+  delete x scale
+  if .axislabelx.
+    set x format "\xformat"
+  else
+    set x format off
+  end if
+  set x type \xtype
+  if {rpn "log" "\xtype" ==}
+    if {rpn .xstart. .xend. >}
+      set x axis .xstart. .xend. .xbiginc. .xsmlinc.
+    else
+      set x axis .xstart. .xend.
+    end if
+  else
+    set x axis .xstart. .xend. .xbiginc. .xsmlinc. labeling .xstart.
+  end if
+
+  draw x axis at bottom
+
+  if {rpn .secondx. not}
+    set x format off
+    draw x axis at top
+  end if
+
+}
+
+#-------------------------------------------------------------------------
+`the_dataframe'
+{
+  set font size .tickfont.
+
+  delete x scale
+  set x type \xtype
+  if {rpn "log" "\xtype" ==}
+    if {rpn .xstart. .xend. >}
+      set x axis .xstart. .xend. .xbiginc. .xsmlinc.
+    else
+      set x axis .xstart. .xend.
+    end if
+  else
+    set x axis .xstart. .xend. .xbiginc. .xsmlinc. labeling .xstart.
+  end if
+
+  delete y scale
+  set y type \ytype
+  if {rpn "log" "\ytype" ==}
+    if {rpn .ystart. .yend. >}
+      set y axis .ystart. .yend. .ybiginc. .ysmlinc.
+    else
+      set y axis .ystart. .yend.
+    end if
+  else
+    set y axis .ystart. .yend. .ybiginc. .ysmlinc. labeling .ystart.
+  end if
+}
+
+#-------------------------------------------------------------------------
+`the_datalayout'
+{
+  set font size .tickfont.
+  set symbol size .symbolsize.
+  set line width symbol {rpn .symbolsize. 10 *}
+  set line width .linewidth.
+  set line join 1                     # round join
+  set line cap 1                      # round cap
+}
+
+
+# ----- process restrictions -----
+
+get_number "process" &.arg. &.noise. 0
+sprintf \noise  "%i" .noise.
+if {rpn 10 .noise. > }
+  show .noise. " steps restriction"
+else if {rpn 0 .noise. > }
+  show .noise. " noisy copies"
 end if
 
-.arg. += 1
-\arg = {rpn .arg. argv}               # 'OFFSET'
-if {rpn "offset" "\arg" ==}           # check for optional drawing restriction
- .offset. = 1
- .argcount. += 1
-else
- .arg. -= 1                           # try something different
+# ----- weighted -----
+
+get_logical "weighted" &.arg. &.weightcolumn. 0
+.argcount. += .weightcolumn.
+if .weightcolumn.
+  \weighted = "--weight"
 end if
 
-.arg. += 1
-\arg = {rpn .arg. argv}               # 'SKIP'
-if {rpn "skip" "\arg" ==}             # check for string
- .arg. += 1
- \skip = {rpn "-s '" .arg. argv strcat "'" strcat}
-else
- .arg. -= 1                           # try something different
+# ----- total -----
+
+get_string "total" &.arg. &\total ""
+if {rpn "own" "\total" ==}                    # total per data set
+  .total. = 1
+  .argcount. += 1
+  if ..debug..
+    show "own total"
+  end if
+else if {rpn "" "\total" == not}
+  \total  = "--total '\total'"
 end if
 
-.arg. += 1
-\arg = {rpn .arg. argv}               # 'COLORMAP' | 'COLOR'
-if {rpn "colormap" "\arg" ==}         # check for optional drawing restriction
+# ----- offset -----
+
+get_logical "offset" &.arg. &.offset. 0
+.argcount. += .offset.
+
+# ----- skip -----
+
+get_string "skip" &.arg. &\skip ""
+if {rpn "" "\skip" == not}
+  \skip = {rpn "-s '" \skip strcat "'" strcat}
+end if
+
+# ----- abs -----
+
+get_logical "abs" &.arg. &.abs. 0
+if .abs.
+  \restriction = {rpn "\restriction" " --absolute" strcat}
+end if
+
+# ----- pos|neg -----
+
+get_bitfield "all" "pos" "neg" &.arg. &.pos. &.neg.
+if .pos.                              # check for positive restriction
+  \restriction = {rpn "\restriction" " --positive" strcat}
+else if .neg.                         # check for negative restriction
+ \restriction = {rpn "\restriction" " --negative" strcat}
+end if
+
+# ----- line -----
+\arg = {rpn .arg. 1 + argv}
+if {rpn "line" "\arg" ==}                        # check for optional drawing restriction
+  .line. = 1
+  \line  = {rpn .arg. 2 + argv}                  # read line style
+  if {rpn "own" "\line" ==}                      # line style per data set
+   .ownline.   = 1
+   .argcount. += 1
+  end if
+  .arg. += 2
+end if
+
+# ----- linewidth -----
+
+get_number "linewidth" &.arg. &.linewidth. 1.5
+
+# ----- color(map) -----
+\arg = {rpn .arg. 1 + argv}
+if {rpn "colormap" "\arg" ==}                    # check for optional drawing restriction
   .colormap. = 1
   .color. = 0
-  .arg. += 1
-  \colormap = {rpn .arg. argv}        # read colormap
-else if {rpn "color" "\arg" ==}       # check for optional drawing restriction
+  \colormap = {rpn .arg. 2 + argv}               # read colormap
+  .arg. += 2
+else if {rpn "color" "\arg" ==}                  # check for optional drawing restriction
   .color. = 1
   .colormap. = 0
-  .arg. += 1
-  \color = {rpn .arg. argv}           # read color
-  if {rpn "own" "\color" ==}          # color per data set
+  \color = {rpn .arg. 2 + argv}                  # read color
+  if {rpn "own" "\color" ==}                     # color per data set
     .owncolor. = 1
     .argcount. += 1
   end if
-else
- .arg. -= 1                           # try something different
+  .arg. += 2
 end if
 
-.arg. += 1
-\arg = {rpn .arg. argv}               # 'LABEL'
-if {rpn "label" "\arg" ==}            # check for optional drawing restriction
- .curvelabel. = 1
- .argcount. += 1
-else
- .arg. -= 1                           # try something different
+# ----- label -----
+
+get_logical "label" &.arg. &.curvelabel. 0
+.argcount. += .curvelabel.
+
+# ----- noaxes -----
+
+get_bitfield "noaxes" "noxaxis" "noyaxis" &.arg. &.axislabelx. &.axislabely.
+#get_logical "noaxes" &.arg. &.axeslabel. 0
+.axislabelx. = {rpn .axislabelx. not}
+.axislabely. = {rpn .axislabely. not}
+
+# ----- second set of axes -----
+
+get_logical "secondx" &.arg. &.secondx. 0
+
+if .secondx.
+  \x2type      = {rpn  1 .arg. + argv} 
+  \x2label     = {rpn  2 .arg. + argv} 
+  \x2format    = {rpn  3 .arg. + argv}
+  .x2start.    = {rpn  4 .arg. + argv atof}
+  .x2end.      = {rpn  5 .arg. + argv atof}
+  .x2Nincs.    = {rpn  6 .arg. + argv atof}
+  .x2Nsubincs. = {rpn  7 .arg. + argv atof}
+  if {rpn "log" "\x2type" ==}
+    .x2biginc. = {rpn .x2end. log .x2start. log - .x2Nincs. 1 sup / floor 1 sup}
+    .x2smlinc. = .x2Nsubincs.                  # for log axes negative sign suppresses subticks
+    sprintf \x2tickmin "%.0f" {rpn .x2start. log}
+    sprintf \x2tickmax "%.0f" {rpn .x2end. log}
+    \x2tickmin = {rpn "10" "\x2tickmin" strcat} 
+    \x2tickmax = {rpn "10" "\x2tickmax" strcat} 
+  else
+    .x2biginc. = {rpn .x2end. .x2start. - .x2Nincs. 1 sup /}
+    .x2smlinc. = {rpn .x2biginc. 1 .x2Nsubincs. sup /}
+    sprintf \x2tickmin "\x2format" .x2start.
+    sprintf \x2tickmax "\x2format" .x2end.
+  end if
+  .arg. += 7
 end if
 
-.arg. += 1
-\arg = {rpn .arg. argv}               # 'ABS'
-if {rpn "abs" "\arg" ==}              # check for absolute restriction
- \restriction = {rpn "\restriction" " --absolute" strcat}
-else
- .arg. -= 1                           # try something different
-end if
+# ----- axis label -----
 
-.arg. += 1
-\arg = {rpn .arg. argv}               # 'POS' | 'NEG'
-if {rpn "pos" "\arg" ==}              # check for positive restriction
- \restriction = {rpn "\restriction" " --positive" strcat}
-else if {rpn "neg" "\arg" ==}         # check for negative restriction
- \restriction = {rpn "\restriction" " --negative" strcat}
-else
- .arg. -= 1                           # try something different
-end if
+get_string "ylabel" &.arg. &\ylabel "cumulative probability"
 
-.arg. += 1
-\arg = {rpn .arg. argv}               # 'ASPECT'
-if {rpn "aspect" "\arg" ==}           # check for optional aspect ratio indicator
- .arg. += 1
- .aspect.  = {rpn .arg. argv atof}    # read y/x ratio
-else
- .arg. -= 1                           # try something different
- .aspect. = 1
-end if
 
-.arg. += 1
-\arg = {rpn .arg. argv}               # 'FRAME'
-if {rpn "frame" "\arg" ==}            # check for optional frame size selection
- .frame. = 1                          # remember
-else
- .arg. -= 1                           # try something different
- .frame. = 0
-end if
+# ----- clip -----
+
+get_logical "clip"    &.arg. &.clip.    0
+
+# ----- tight -----
+
+get_logical "tight"    &.arg. &.tight.    0
+
+# ----- aspect -----
+
+get_number  "aspect"  &.arg. &.aspect.  1.0
+
+# ----- frame -----
+
+get_logical "frame"   &.arg. &.frame.   0
+
+
+# ++++++++++ option parsing done ++++++++++++
 
 .datacount. = {rpn argc 1 - .mandatorycount. .arg. + -} 
 if {rpn 0 .datacount. .argcount. remainder == 0 .datacount. >= and}
@@ -162,132 +480,154 @@ if {rpn 0 .datacount. .argcount. remainder == 0 .datacount. >= and}
    show "nFiles " .nFiles.
  end if
 else
- show "Usage: plot_distribution.gri"
+ show ""
+ show "usage: plot_distribution.gri "
  show "       [ 'process' noise |          --> use NOISE (<=10) noisy copies per value"
  show "                   limit ]          --> limit distribution to LIMIT (>10) values"
  show "       [ 'weighted' ]               --> weight distribution by secondary column value instead of number"
  show "       [ 'total' (value | 'own' ) ] --> total number of observations across multiple series"
  show "       [ 'offset' ]                 --> with individual series offset"
  show "       [ 'skip' value ]             --> value to ignore in distribution"
- show "       [ 'colormap' name |          --> employ named colormap"
- show "         'color'   (name | 'own') ] --> fixed color"
- show "       [ 'label' ]                  --> with label"
  show "       [ 'abs' ]                    --> use absolute values"
  show "       [ 'pos' | 'neg']             --> use positive | negative values"
+ show "       [ 'line' (name | 'own') ]"
+ show "       [ 'linewidth' value ]"
+ show "       [ 'colormap' name | 'color' (name | 'own') ]"
+ show "       [ 'label' ]                  --> with label"
+ show "       [ 'noaxes' | 'noxaxis' | 'noyaxis' ]"
+ show "       [ 'secondx' & "
+ show "         x2.type  x2.label x2.format x2.start x2.end x2.Nincs x2.Nsubincs ]"
+ show "       [ 'ylabel' string ]          --> label of cumulative probability"
+ show "       [ 'clip' ]"
+ show "       [ 'tight' ]"
  show "       [ 'aspect' y/x-ratio ]       --> frame aspect ratio"
- show "       [ 'frame' ] size             --> diagram (frame) size in cm"
+ show "       ['frame'] size               --> diagram (frame) size in cm"
  show "       x.type x.label x.format      --> ('linear' | 'log') theLabel %f"
  show "       x.start x.end x.Nincs x.Nsubincs x.scaling"
- show "       filename column [[weightColumn] [total] [offset] [label] [color]]"
+ show "       filename column [[weightColumn] [total] [offset] [label] [ownLine] [ownColor|col.color]]"
  show "     [ filename column ... ]"
+ show ""
+ show "Nincs:          number of increments for major tick labeling"
+ show "Nsubincs:       number of increments for minor ticking"
+ show "scaling:        factor by which data is pre-multiplied"
+ show ""
+ show "valid lines:    none, solid (default), dashed, dotted, dash-dotted"
+ show ""
+ show "valid colormaps: gray (default), red, green, blue,"
+ show "                 cyan, magenta, yellow, orange"
+ show ""
+ show "valid colors:   black (default), white, red, green, blue,"
+ show "                cyan, magenta, yellow, brown, tan, orange,"
+ show "                LightGray, darkslategray, ForestGreen, skyblue"
+ show "                'rgb 0..1 0..1 0..1'"
+ show "                'hsb 0..1 0..1 0..1'"
+ show ""
+ show "                Color can be drawn from a data column (with values from 0 to 1)"
+ show "                if special color code 'z' is selected."
+ show ""
  if ..debug..
    show "expecting " .argcount. " per data having " .datacount.
    .i. = 0
    while {rpn .datacount. .i. <}
      show {rpn .i. .mandatorycount. + .arg. + 1 + } ":" {rpn .i. .mandatorycount. + .arg. + 1 + argv}
-     .i.   += 1
+     .i. += 1
    end while
  end if
  quit
 end if
 
-.size.      = {rpn 1 .arg. + argv atof}
-\xtype      = {rpn 2 .arg. + argv} 
-\xlabel     = {rpn 3 .arg. + argv} 
-\xformat    = {rpn 4 .arg. + argv}
-.xstart.    = {rpn 5 .arg. + argv atof}
-.xend.      = {rpn 6 .arg. + argv atof}
-.xNincs.    = {rpn 7 .arg. + argv atof}
-.xNsubincs. = {rpn 8 .arg. + argv atof}
-.xscale.    = {rpn 9 .arg. + argv atof}
+.size.       = {rpn  1 .arg. + argv atof}
+\xtype       = {rpn  2 .arg. + argv} 
+\xlabel      = {rpn  3 .arg. + argv} 
+\xformat     = {rpn  4 .arg. + argv}
+.xstart.     = {rpn  5 .arg. + argv atof}
+.xend.       = {rpn  6 .arg. + argv atof}
+.xNincs.     = {rpn  7 .arg. + argv atof}
+.xNsubincs.  = {rpn  8 .arg. + argv atof}
+.xscale.     = {rpn  9 .arg. + argv atof}
 if {rpn "log" "\xtype" ==}
   .xbiginc. = {rpn .xend. log .xstart. log - .xNincs. 1 sup / floor 1 sup}
   .xsmlinc. = .xNsubincs.                  # for log axes negative sign suppresses subticks
+  sprintf \xtickmin "%.0f" {rpn .xstart. log}
+  sprintf \xtickmax "%.0f" {rpn .xend. log}
+  \xtickmin = {rpn "10" "\xtickmin" strcat} 
+  \xtickmax = {rpn "10" "\xtickmax" strcat} 
 else
   .xbiginc. = {rpn .xend. .xstart. - .xNincs. 1 sup /}
   .xsmlinc. = {rpn .xbiginc. 1 .xNsubincs. sup /}
+  sprintf \xtickmin "\xformat" .xstart.
+  sprintf \xtickmax "\xformat" .xend.
 end if
 
 \ytype    = "linear"
-\ylabel   = "cumulative probability"
 \yformat  = "%0.2f"
 .ystart.  = 0
 .yend.    = 1
-.ybiginc. = 0.25
-.ysmlinc. = 0.05
-.arg. += 9
+.yNincs.    = 4
+.yNsubincs. = 5
+.yscale.    = 1
 
-set font to Times
-set font size .labelfont.
-
-sprintf \ytickmin "\yformat" .ystart.
-sprintf \ytickmax "\yformat" .yend.
-.xmargin. = {rpn "\xlabel" ascent "\xlabel" descent + "\ylabel" ascent "\ylabel" descent + sup 4 * "\ytickmin" width "\ytickmax" width sup 2.0 "\ylabel" ascent "\ylabel" descent + * + sup}
-.ymargin. = {rpn "\xlabel" ascent "\xlabel" descent + "\ylabel" ascent "\ylabel" descent + sup 3 *}
-
-if .frame.
-  .diagramsize. = .size.
-  .size. = {rpn 0.4 .xmargin. .diagramsize. + +}
-  .gutter.  = {rpn 0.4 .size. 18 / inf}
-  .size. += {rpn .gutter. 0.4 -}
-else
-  .gutter.  = {rpn 0.4 .size. 18 / inf}
-  .diagramsize.   = {rpn .size. .xmargin. .gutter. + - }
-end if
-
-set bounding box 0 0 .size. {rpn .ymargin. .aspect. .diagramsize. * .gutter. + +} cm
-set x margin .xmargin.
-set y margin .ymargin.
-set x size .diagramsize.
-set y size {rpn .aspect. .diagramsize. *}
-
-
-if !..publication..
- set font size 3
- .info. = 80
- if {rpn "\.ps_file." strlen .info. <}
-   .sublen. = {rpn "\.ps_file." strlen 64 inf}
-   draw label {rpn "..." "\.ps_file." strlen .sublen. - .sublen. "\.ps_file." substr strcat} at {rpn 0.4 .gutter. * .xmargin. .diagramsize. + +} .ymargin. cm rotated 90
- else
-   draw label "\.ps_file." at {rpn 0.4 .gutter. * .xmargin. .diagramsize. + +} .ymargin. cm rotated 90
- end if
- draw label "\.time."    at {rpn 0.8 .gutter. *  .xmargin. .diagramsize. + +} .ymargin. cm rotated 90
-end if
-
-
-set font size .labelfont.
-draw label "\xlabel" centered at {rpn .xmargin. .diagramsize. 2 / +} {rpn "\xlabel" descent .labelfont. 3 / pttocm +} cm
-draw label "\ylabel" centered at {rpn "\ylabel" ascent .labelfont. 3 / pttocm +} {rpn .ymargin. .aspect. .diagramsize. * 2 / +} cm rotated 90
-set font size .tickfont.
-
-set x type \xtype
-set y type \ytype
-if {rpn "log" "\xtype" ==}
-  set x axis .xstart. .xend. .xbiginc. .xsmlinc.
-else
-  set x axis .xstart. .xend. .xbiginc. .xsmlinc. labeling .xstart.
-end if
 if {rpn "log" "\ytype" ==}
-  set y axis .ystart. .yend. .ybiginc. .ysmlinc.
+  .ybiginc. = {rpn .yend. log .ystart. log - .yNincs. 1 sup / floor 1 sup}
+  .ysmlinc. = .yNsubincs.                 # for log axes negative sign suppresses subticks
+  sprintf \ytickmin "%.0f" {rpn .ystart. log}
+  sprintf \ytickmax "%.0f" {rpn .yend. log}
+  \ytickmin = {rpn "10" "\ytickmin" strcat} 
+  \ytickmax = {rpn "10" "\ytickmax" strcat} 
 else
-  set y axis .ystart. .yend. .ybiginc. .ysmlinc. labeling .ystart.
+  .ybiginc. = {rpn .yend. .ystart. - .yNincs. 1 sup /}
+  .ysmlinc. = {rpn .ybiginc. 1 .yNsubincs. sup /}
+  sprintf \ytickmin "\yformat" .ystart.
+  sprintf \ytickmax "\yformat" .yend.
 end if
 
-set x format "\xformat"
-set y format "\yformat"
-set axes style 0
-set tics in
-set x name ""
-set y name ""
-set line width axis 0.5
-draw axes
+.arg. += .mandatorycount.
 
-set clip postscript on
-set symbol size 0.15
-set line width symbol 1.5
-set line width 1.5
+if ..debug..
+  show "size " .size.
+  show "xtype " "\xtype"
+  show "xlabel " "\xlabel"
+  show "xformat " "\xformat"
+  show "xstart " .xstart.
+  show "xend " .xend.
+  show "xNincs " .xNincs.
+  show "xNsubincs " .xNsubincs.
+  show "xscale " .xscale.
+  show "ytype " "\ytype"
+  show "ylabel " "\ylabel"
+  show "yformat " "\yformat"
+  show "ystart " .ystart.
+  show "yend " .yend.
+  show "yNincs " .yNincs.
+  show "yNsubincs " .yNsubincs.
+  show "yscale " .yscale.
+  show "argcount " .argcount.
+end if
 
 
+# ----- diagram metrics -----
+
+the_layout
+
+# ----- info label -----
+
+the_info
+
+# ----- axes behind data -----
+
+if .clip.
+  the_dataframe
+  set clip postscript on
+  set axes style none
+else
+  the_axes
+end if
+
+# ----- data layout -----
+
+the_datalayout
+
+# +++++ loop over input data +++++
 # +++++ loop over distributions +++++
 
 
@@ -312,8 +652,11 @@ while {rpn .nFiles. .i. <}
  if .curvelabel.
    \label  = {rpn 3 .weightcolumn. .total. .offset. .arg. + + + + argv}
  end if
+ if .ownline.
+   \line  = {rpn 3 .weightcolumn. .total. .offset. .curvelabel. .arg. + + + + + argv}
+ end if
  if .owncolor.
-   \color  = {rpn 3 .weightcolumn. .total. .offset. .curvelabel. .arg. + + + + + argv}
+   \color  = {rpn 3 .weightcolumn. .total. .offset. .curvelabel. .ownline. .arg. + + + + + + argv}
  end if
 
  show {rpn "plot_distribution.gri: " "\filename" strcat }
@@ -328,17 +671,19 @@ while {rpn .nFiles. .i. <}
    .brightness. = {rpn 1 .i. .nFiles. / - sqrt }    # from bright towards dark
    if {rpn "red" "\colormap" ==}
      .hue. = 0
-   else if {rpn "green" "\colormap" ==}
-     .hue. = 0.333
-   else if {rpn "blue" "\colormap" ==}
-     .hue. = 0.667
-   else if {rpn "yellow" "\colormap" ==}
+   else if {rpn "orange"  "\colormap" ==}
+     .hue. = 0.083
+   else if {rpn "yellow"  "\colormap" ==}
      .hue. = 0.167
-   else if {rpn "cyan" "\colormap" ==}
+   else if {rpn "green"   "\colormap" ==}
+     .hue. = 0.333
+   else if {rpn "cyan"    "\colormap" ==}
      .hue. = 0.5
+   else if {rpn "blue"    "\colormap" ==}
+     .hue. = 0.667
    else if {rpn "magenta" "\colormap" ==}
      .hue. = 0.833
-   else                                             # default is grayscale
+   else # default is grayscale
      .hue. = 0
      .saturation. = 0
      .brightness. = {rpn 1 .i. 1 + .nFiles. / -}
@@ -358,11 +703,25 @@ while {rpn .nFiles. .i. <}
 
  # ------------  draw distribution --------------
 
- read columns x y
- x *= .xscale.
- draw curve
+ if {rpn .line. "none" "\line" == ! &}
+  read columns x y
 
+  x *= .xscale.
 
+  if {rpn "solid" "\line" ==}
+    set dash off
+  else if {rpn "dashed" "\line" ==}
+    set dash {rpn ..linewidth.. pttocm 3 *} {rpn ..linewidth.. pttocm 3 *}
+  else if {rpn "dotted" "\line" ==}
+    set dash {rpn ..linewidth.. pttocm 0.0 *} {rpn ..linewidth.. pttocm 2 *}
+  else if {rpn "dash-dotted" "\line" ==}
+    set dash {rpn ..linewidth.. pttocm 3 *} {rpn ..linewidth.. pttocm 2 *} {rpn ..linewidth.. pttocm 0.0 *} {rpn ..linewidth.. pttocm 2 *}
+  end if
+
+  draw curve
+ end if
+
+ 
  # ------------- draw label ----------------
 
  if .curvelabel.
@@ -376,3 +735,27 @@ end if
  .arg. += .argcount.
 
 end while
+
+
+
+# +++++ draw axes in front of data +++++
+
+
+if .clip. 
+  the_axes
+end if
+
+# ----- axis labels -----
+
+set font size .labelfont.
+set color black
+
+if .secondx.
+  draw label "\x2label" centered at {rpn .leftmargin. .diagramsize. 2 / +} {rpn .bottommargin. .topmargin. + .aspect. .diagramsize. * + "\x2label" ascent .labelfont. 3 / pttocm + -} cm
+end if
+if .axislabelx.
+  draw label "\xlabel"  centered at {rpn .leftmargin. .diagramsize. 2 / +} {rpn "\xlabel" descent .labelfont. 3 / pttocm +} cm
+end if
+if .axislabely.
+  draw label "\ylabel"  centered at {rpn "\ylabel" ascent .labelfont. 3 / pttocm +}                                                  {rpn .bottommargin. .aspect. .diagramsize. * 2 / +} cm rotated 90
+end if
