@@ -13,7 +13,7 @@ new \
   .offset. \
   .clip. \
   .tight. \
-  .line. .ownline. \line .linewidth. \
+  .ownline. \line .linewidth. \
   .color. .owncolor. \color .colormap. \colormap \
   .curvelabel. \
   .axislabelx. .axislabely. \
@@ -29,7 +29,6 @@ new \
 
 .total. = 0
 
-.line.   = 0
 .ownline. = 0
 
 .color. = 0
@@ -378,7 +377,6 @@ end if
 # ----- line -----
 \arg = {rpn .arg. 1 + argv}
 if {rpn "line" "\arg" ==}                        # check for optional drawing restriction
-  .line. = 1
   \line  = {rpn .arg. 2 + argv}                  # read line style
   if {rpn "own" "\line" ==}                      # line style per data set
    .ownline.   = 1
@@ -703,7 +701,7 @@ while {rpn .nFiles. .i. <}
 
  # ------------  draw distribution --------------
 
- if {rpn .line. "none" "\line" == ! &}
+ if {rpn "none" "\line" == !}
   read columns x y
 
   x *= .xscale.
