@@ -38,6 +38,7 @@ new \
 
 .steps.  = 0
 .curvelabel. = 0
+.labelreverse. = 0
 .axislabelx. = 1
 .axislabely. = 1
 
@@ -404,6 +405,10 @@ end if
 get_logical "label" &.arg. &.curvelabel. 0
 .argcount. += .curvelabel.
 
+if .curvelabel.
+  get_logical "initial" &.arg. &.labelreverse. 0
+end if
+
 # ----- noaxes -----
 
 get_bitfield "noaxes" "noxaxis" "noyaxis" &.arg. &.axislabelx. &.axislabely.
@@ -508,7 +513,7 @@ else
  show "                [ 'symbol' (name | 'own') ]"
  show "                [ 'symbolsize' value ]"
  show "                [ 'colormap' name | 'color' (name | 'own' | 'z[:hue]') ]"
- show "                [ 'label' ]"
+ show "                [ 'label' ['initial'] ]"
  show "                [ 'noaxes' | 'noxaxis' | 'noyaxis' ]"
  show "                [ 'abs' | 'absx' | 'absy' ]"
  show "                [ 'second' | 'secondx' | 'secondy' & "
@@ -533,6 +538,8 @@ else
  show ""
  show "valid lines:    none, solid (default), dashed, dotted, dash-dotted"
  show ""
+ show "valid steps:    left|start, center|middle, right|end"
+ show ""
  show "valid symbols:  none, wheel (default), plus, times, box, circ, diamond,"
  show "                triangleup, triangleright, triangledown, triangleleft,"
  show "                asterisk, star, filledbox, bullet, dot, filleddiamond,"
@@ -551,6 +558,7 @@ else
  show "                Color can be drawn from a data column (with values from 0 to 1)"
  show "                if special color code 'z' is selected."
  show ""
+
  if ..debug..
    show "expecting " .argcount. " per data having " .datacount.
    .i. = 0
@@ -851,7 +859,13 @@ while {rpn .nFiles. .i. <}
  # ------------- draw label ----------------
 
  if .curvelabel.
-   draw label for last curve "\label" 
+  if .labelreverse.
+   draw label "\label" rightjustified at \
+   {rpn x 0 @ xusertocm "x" width -} \
+   {rpn y 0 @ yusertocm "\label" ascent 2 / -} cm
+  else
+   draw label for last curve "\label"
+  end if
  end if
  
 
