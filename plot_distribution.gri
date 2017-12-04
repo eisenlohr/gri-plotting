@@ -61,21 +61,7 @@ new \
     \.word3. = "\.word4."                         # assign if key not found
   end if
   if ..debug..
-    show "string \.word1.  \.word3.    default  \.word4. "
-  end if
-}
-
-#-------------------------------------------------------------------------
-`get_logical "\key" &.pos. &.flag. .default.'
-{
-  if {rpn "\.word1." \.word2. 1 + argv ==}        # check match
-    \.word3.  = 1                                 # make flag true
-    \.word2. += 1                                 # advance position
-  else if {rpn \.words. 5 ==}                     # has default?
-    \.word3. = \.word4.                           # assign if key not found
-  end if
-  if ..debug..
-    show "logical \.word1. " \.word3. "   default " \.word4.
+    show "string  : \.word1.  \.word3.    default  '\.word4.'"
   end if
 }
 
@@ -89,7 +75,21 @@ new \
     \.word3. = \.word4.                           # assign if key not found
   end if
   if ..debug..
-    show "number \.word1. " \.word3. "   default " \.word4.
+    show "number  : \.word1. " \.word3. "   default " \.word4.
+  end if
+}
+
+#-------------------------------------------------------------------------
+`get_logical "\key" &.pos. &.flag. .default.'
+{
+  if {rpn "\.word1." \.word2. 1 + argv ==}        # check match
+    \.word3.  = 1                                 # make flag true
+    \.word2. += 1                                 # advance position
+  else if {rpn \.words. 5 ==}                     # has default?
+    \.word3. = \.word4.                           # assign if key not found
+  end if
+  if ..debug..
+    show "logical : \.word1. " \.word3. "   default " \.word4.
   end if
 }
 
@@ -115,7 +115,7 @@ new \
     \.word6. = 0
   end if
   if ..debug..
-    show "bitfield \.word1. " \.word5. " " \.word6.
+    show "bitfield: \.word1. " \.word5. " " \.word6.
   end if
 }
 

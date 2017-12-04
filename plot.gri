@@ -61,7 +61,7 @@ new \
     \.word3. = "\.word4."                         # assign if key not found
   end if
   if ..debug..
-    show "string  : \.word1.  \.word3.    default  \.word4. "
+    show "string  : \.word1.  \.word3.    default  '\.word4.'"
   end if
 }
 
