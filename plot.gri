@@ -110,10 +110,10 @@ new \
   set line width axis 0.5
 
   if .tight.  
-    .leftmargin.    = {rpn ..linewidthaxis.. pttocm}
-    .rightmargin.   = {rpn ..linewidthaxis.. pttocm 2 *}
-    .bottommargin.  = {rpn ..linewidthaxis.. pttocm}
-    .topmargin.     = {rpn ..linewidthaxis.. pttocm 2 *}
+    .leftmargin.    = {rpn ..linewidthaxis.. 0.5 * pttocm}
+    .rightmargin.   = {rpn ..linewidthaxis.. 1.5 * pttocm}
+    .bottommargin.  = {rpn ..linewidthaxis.. 0.5 * pttocm}
+    .topmargin.     = {rpn ..linewidthaxis.. 1.5 * pttocm}
   else
     .leftmargin.    = 0.4
     .rightmargin.   = 0.4
@@ -170,14 +170,14 @@ new \
   if !..publication..
    set font size .infofont.
    .info. = 80
-   .infomargin. = {rpn 0.1 .secondy. * .bottommargin. .secondy. not * +}
+   .infomargin. = {rpn 0.1 .secondy. * .bottommargin. .secondy. not * + "x" width +}
    if {rpn "\.ps_file." strlen .info. <}
      .sublen. = {rpn "\.ps_file." strlen 64 inf}
      draw label {rpn "..." "\.ps_file." strlen .sublen. - .sublen. "\.ps_file." substr strcat} at {rpn .leftmargin. .rightmargin. + .diagramsize. + ..fontsize.. 2.5 * pttocm -} .infomargin. cm rotated 90
    else
      draw label "\.ps_file." at {rpn .leftmargin. .rightmargin. + .diagramsize. + ..fontsize.. 2.5 * pttocm -} .infomargin. cm rotated 90
    end if
-   draw label "\.time."    at {rpn .leftmargin. .rightmargin. + .diagramsize. + ..fontsize.. pttocm -} .infomargin. cm rotated 90
+   draw label "\.time."      at {rpn .leftmargin. .rightmargin. + .diagramsize. + ..fontsize.. pttocm -} .infomargin. cm rotated 90
 
 
   end if
