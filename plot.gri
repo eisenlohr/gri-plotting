@@ -8,8 +8,8 @@
 new \
   .clip. \
   .tight. \
-  .line. .ownline. \line .linewidth. \
-  .marker. .ownsymbol. \symbol .symbolsize. \
+  .line. .ownline. .ownlinewidth. \line .linewidth. \
+  .marker. .ownsymbol. .ownsymbolsize. \symbol .symbolsize. \
   .color. .colorByData. .zhue. .hasZhue. .owncolor. \color .colormap. \colormap \
   .steps. \
   .curvelabel. \
@@ -23,9 +23,13 @@ new \
 
 .line.   = 0
 .ownline. = 0
+.ownlinewidth. = 0
+\linewidth = ""
 
 .marker. = 0
 .ownsymbol. = 0
+.ownsymbolsize. = 0
+\symbolsize = ""
 
 .color. = 0
 .colorByData. = 0
@@ -48,16 +52,16 @@ new \
 # common functions
 
 #-------------------------------------------------------------------------
-`get_logical "\key" &.pos. &.flag. .default.'
+`get_string "\key" &.pos. &\string .default.'
 {
   if {rpn "\.word1." \.word2. 1 + argv ==}        # check match
-    \.word3.  = 1                                 # make flag true
-    \.word2. += 1                                 # advance position
+    \.word3.  = {rpn \.word2. 2 + argv}           # assign value
+    \.word2. += 2                                 # advance position
   else if {rpn \.words. 5 ==}                     # has default?
-    \.word3. = \.word4.                           # assign if key not found
+    \.word3. = "\.word4."                         # assign if key not found
   end if
   if ..debug..
-    show "logical \.word1. " \.word3. "   default " \.word4.
+    show "string  : \.word1.  \.word3.    default  \.word4. "
   end if
 }
 
@@ -71,7 +75,21 @@ new \
     \.word3. = \.word4.                           # assign if key not found
   end if
   if ..debug..
-    show "number \.word1. " \.word3. "   default " \.word4.
+    show "number  : \.word1. " \.word3. "   default " \.word4.
+  end if
+}
+
+#-------------------------------------------------------------------------
+`get_logical "\key" &.pos. &.flag. .default.'
+{
+  if {rpn "\.word1." \.word2. 1 + argv ==}        # check match
+    \.word3.  = 1                                 # make flag true
+    \.word2. += 1                                 # advance position
+  else if {rpn \.words. 5 ==}                     # has default?
+    \.word3. = \.word4.                           # assign if key not found
+  end if
+  if ..debug..
+    show "logical : \.word1. " \.word3. "   default " \.word4.
   end if
 }
 
@@ -97,7 +115,7 @@ new \
     \.word6. = 0
   end if
   if ..debug..
-    show "bitfield \.word1. " \.word5. " " \.word6.
+    show "bitfield: \.word1. " \.word5. " " \.word6.
   end if
 }
 
@@ -313,11 +331,15 @@ new \
 `the_datalayout'
 {
   set font size .tickfont.
-  set symbol size .symbolsize.
-  set line width symbol {rpn .symbolsize. 10 *}
-  set line width .linewidth.
   set line join 1                     # round join
   set line cap 1                      # round cap
+  if ! .ownsymbolsize.
+    set symbol size .symbolsize.
+    set line width symbol {rpn .symbolsize. 10 *}
+  end if
+  if ! .ownlinewidth.
+    set line width .linewidth.
+  end if
 }
 
 
@@ -343,7 +365,17 @@ end if
 
 # ----- linewidth -----
 
-get_number "linewidth" &.arg. &.linewidth. 1.5
+get_string "linewidth" &.arg. &\linewidth ""
+if {rpn "own" "\linewidth" ==}                   # own per data set
+  .ownlinewidth. = 1
+  .argcount. += 1
+  if ..debug..
+    show "own linewidth"
+  end if
+else
+  get_number "linewidth" &.arg. &.linewidth. 1.5
+end if
+
 
 # ----- symbol -----
 \arg = {rpn .arg. 1 + argv}
@@ -372,7 +404,16 @@ end if
 
 # ----- symbolsize -----
 
-get_number "symbolsize" &.arg. &.symbolsize. 0.15
+get_string "symbolsize" &.arg. &\symbolsize ""
+if {rpn "own" "\symbolsize" ==}                  # own per data set
+  .ownsymbolsize. = 1
+  .argcount. += 1
+  if ..debug..
+    show "own symbolsize"
+  end if
+else
+  get_number "symbolsize" &.arg. &.symbolsize. 0.15
+end if
 
 # ----- color(map) -----
 \arg = {rpn .arg. 1 + argv}
@@ -509,9 +550,9 @@ if {rpn 0 .datacount. .argcount. remainder == 0 .datacount. >= and}
 else
  show ""
  show "usage: plot.gri [ 'line' (name | 'own') | 'stepped' where ]"
- show "                [ 'linewidth' value ]"
+ show "                [ 'linewidth' (value | 'own') ]"
  show "                [ 'symbol' (name | 'own') ]"
- show "                [ 'symbolsize' value ]"
+ show "                [ 'symbolsize' (value | 'own') ]"
  show "                [ 'colormap' name | 'color' (name | 'own' | 'z[:hue]') ]"
  show "                [ 'label' ['initial'] ]"
  show "                [ 'noaxes' | 'noxaxis' | 'noyaxis' ]"
@@ -528,8 +569,8 @@ else
  show "                x.start x.end   x.Nincs x.Nsubincs x.scaling"
  show "                y.type  y.label y.format"
  show "                y.start y.end   y.Nincs y.Nsubincs y.scaling"
- show "                filename col.x col.y [label] [ownLine] [ownSymbol] [ownColor|col.color]"
- show "               [filename col.x col.y [label] [ownLine] [ownSymbol] [ownColor|col.color]]"
+ show "                filename col.x col.y [label] [line] [linewidth] [symbol] [symbolsize] [color|col.color]"
+ show "               [filename col.x col.y [label] [line] [linewidth] [symbol] [symbolsize] [color|col.color]]"
  show "                ..."
  show ""
  show "Nincs:          number of increments for major tick labeling"
@@ -671,22 +712,47 @@ while {rpn .nFiles. .i. <}
  \filename = {rpn 1 .arg. + argv}
  .xcol.    = {rpn 2 .arg. + argv atof}
  .ycol.    = {rpn 3 .arg. + argv atof}
+ .arg. += 3
  if .curvelabel.
-   \label  = {rpn 4 .arg. + argv}
+   .arg. += 1
+   \label  = {rpn .arg. argv}
  end if
  if .ownline.
-   \line   = {rpn 4 .curvelabel. .arg. + + argv}
+   .arg. += 1
+   \line   = {rpn .arg. argv}
+ end if
+ if .ownlinewidth.
+   .arg. += 1
+   .linewidth. = {rpn .arg. argv atof}
  end if
  if .ownsymbol.
-   \symbol = {rpn 4 .curvelabel. .ownline. .arg. + + + argv}
+   .arg. += 1
+   \symbol =  {rpn .arg. argv}
+ end if
+ if .ownsymbolsize.
+   .arg. += 1
+   .symbolsize. = {rpn .arg. argv atof}
  end if
  if .owncolor.
-   \color  = {rpn 4 .curvelabel. .ownline. .ownsymbol. .arg. + + + + argv}
+   .arg. += 1
+   \color  =  {rpn .arg. argv}
  else if .colorByData.
-   .zcol.  = {rpn 4 .curvelabel. .ownline. .ownsymbol. .arg. + + + + argv atof}
+   .arg. += 1
+   .zcol.  =  {rpn .arg. argv atof}
  end if
 
  show "plot.gri: \filename"
+
+
+ # ------------ set curve geometry --------------
+ 
+  if .ownsymbolsize.
+    set symbol size .symbolsize.
+    set line width symbol {rpn .symbolsize. 10 *}
+  end if
+  if .ownlinewidth.
+    set line width .linewidth.
+  end if
 
 
  # ------------ set color --------------
@@ -872,7 +938,6 @@ while {rpn .nFiles. .i. <}
  # ---------- increase counter ---------
 
  .i.   += 1
- .arg. += .argcount.
 
 end while
 
