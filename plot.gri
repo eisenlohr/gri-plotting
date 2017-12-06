@@ -18,11 +18,10 @@ new \
   .secondx. .secondy. \
   .gap. \
   .aspect. \
-  .frame. \
-  .inch. \
+  .frame. .inch. \
+  .arg. .datastart. \
   .nGray. .nRed. .nGreen. .nBlue. .nCyan. .nMagenta. .nYellow. .nOrange. \
   .iGray. .iRed. .iGreen. .iBlue. .iCyan. .iMagenta. .iYellow. .iOrange. \
-  .arg. .datastart. \
   .iHSB. .nHSB. \
   .hue. .saturation. .brightness.
 
@@ -406,13 +405,13 @@ end if
 get_string "linewidth" &.arg. &\linewidth ""
 if {rpn "own" "\linewidth" ==}                   # own per data set
   .ownlinewidth. = 1
-  .argcount. += 1
   if ..debug..
     show "own linewidth"
   end if
 else
   get_number "linewidth" &.arg. &.linewidth. 1.5
 end if
+.argcount. += .ownlinewidth.
 
 
 # ----- symbol -----
@@ -445,13 +444,13 @@ end if
 get_string "symbolsize" &.arg. &\symbolsize ""
 if {rpn "own" "\symbolsize" ==}                  # own per data set
   .ownsymbolsize. = 1
-  .argcount. += 1
   if ..debug..
     show "own symbolsize"
   end if
 else
   get_number "symbolsize" &.arg. &.symbolsize. 0.15
 end if
+.argcount. += .ownsymbolsize.
 
 # ----- colormap -----
 
@@ -462,11 +461,11 @@ if {rpn "" "\colormap" ==}                       # no colormap
   .color. = 1                                    # need color definition
 else if {rpn "own" "\colormap" ==}               # own per data set
   .owncolormap. = 1
-  .argcount. += 1
   if ..debug..
     show "own colormap"
   end if
 end if
+.argcount. += .owncolormap.
 
 # ----- color -----
 
