@@ -13,23 +13,24 @@ new \
   .offset. \
   .clip. \
   .tight. \
-  .ownline. \line .linewidth. \
+  .line. .ownline. .ownlinewidth. \line .linewidth. \
   .color. .owncolor. \color .colormap. \colormap \
   .curvelabel. \
   .axislabelx. .axislabely. \
-  .abs. \
-  .pos. \
-  .neg. \
+  .abs. .pos. .neg. \
   .skip. \
   .secondx. \
   \ylabel \
   .aspect. \
-  .frame. \
-  .arg.
+  .frame. .inch. \
+  .arg. \
+  .hue. .saturation. .brightness.
 
 .total. = 0
 
 .ownline. = 0
+.ownlinewidth. = 0
+\linewidth = ""
 
 .color. = 0
 .owncolor. = 0
@@ -50,6 +51,20 @@ new \
 
 
 # common functions
+
+#-------------------------------------------------------------------------
+`set_SB &.S. &.B. .i. .N.'
+{
+  \.word1. = {rpn \.word3. \.word4. /}            # saturation from pure to no hue visible
+  \.word2. = {rpn 1 \.word3. 1 - \.word4. / - sqrt }  # brightness from bright towards dark
+}
+
+#-------------------------------------------------------------------------
+`set_graySB &.S. &.B. .i. .N.'
+{
+  \.word1. = 0                                    # zero saturation => gray scale
+  \.word2. = {rpn 1 \.word3. \.word4. / - }       # brightness from bright towards dark
+}
 
 #-------------------------------------------------------------------------
 `get_string "\key" &.pos. &\string .default.'
@@ -307,11 +322,13 @@ new \
 `the_datalayout'
 {
   set font size .tickfont.
-  set symbol size .symbolsize.
-  set line width symbol {rpn .symbolsize. 10 *}
-  set line width .linewidth.
   set line join 1                     # round join
   set line cap 1                      # round cap
+  set symbol size .symbolsize.
+  set line width symbol {rpn .symbolsize. 10 *}
+  if ! .ownlinewidth.
+    set line width .linewidth.
+  end if
 }
 
 
@@ -387,7 +404,16 @@ end if
 
 # ----- linewidth -----
 
-get_number "linewidth" &.arg. &.linewidth. 1.5
+get_string "linewidth" &.arg. &\linewidth ""
+if {rpn "own" "\linewidth" ==}                   # own per data set
+  .ownlinewidth. = 1
+  if ..debug..
+    show "own linewidth"
+  end if
+else
+  get_number "linewidth" &.arg. &.linewidth. 1.5
+end if
+.argcount. += .ownlinewidth.
 
 # ----- color(map) -----
 \arg = {rpn .arg. 1 + argv}
@@ -415,7 +441,6 @@ get_logical "label" &.arg. &.curvelabel. 0
 # ----- noaxes -----
 
 get_bitfield "noaxes" "noxaxis" "noyaxis" &.arg. &.axislabelx. &.axislabely.
-#get_logical "noaxes" &.arg. &.axeslabel. 0
 .axislabelx. = {rpn .axislabelx. not}
 .axislabely. = {rpn .axislabely. not}
 
@@ -468,6 +493,10 @@ get_number  "aspect"  &.arg. &.aspect.  1.0
 
 get_logical "frame"   &.arg. &.frame.   0
 
+# ----- inch -----
+
+get_logical "inch"   &.arg. &.inch.   0
+.inch. = {rpn .inch. 1.54 * 1 +}                    # scaling factor for .size. (2.54 if inch else 1)
 
 # ++++++++++ option parsing done ++++++++++++
 
@@ -483,26 +512,27 @@ else
  show "       [ 'process' noise |          --> use NOISE (<=10) noisy copies per value"
  show "                   limit ]          --> limit distribution to LIMIT (>10) values"
  show "       [ 'weighted' ]               --> weight distribution by secondary column value instead of number"
- show "       [ 'total' (value | 'own' ) ] --> total number of observations across multiple series"
+ show "       [ 'total' (value | 'own') ]  --> total number of observations across multiple series"
  show "       [ 'offset' ]                 --> with individual series offset"
  show "       [ 'skip' value ]             --> value to ignore in distribution"
  show "       [ 'abs' ]                    --> use absolute values"
  show "       [ 'pos' | 'neg']             --> use positive | negative values"
  show "       [ 'line' (name | 'own') ]"
- show "       [ 'linewidth' value ]"
- show "       [ 'colormap' name | 'color' (name | 'own') ]"
- show "       [ 'label' ]                  --> with label"
+ show "       [ 'linewidth' (value | 'own') ]"
+ show "       [ 'colormap' name |"
+ show "         'color'   (name | 'own') ]"
+ show "       [ 'label' ]                  --> label each curve"
  show "       [ 'noaxes' | 'noxaxis' | 'noyaxis' ]"
  show "       [ 'secondx' & "
  show "         x2.type  x2.label x2.format x2.start x2.end x2.Nincs x2.Nsubincs ]"
  show "       [ 'ylabel' string ]          --> label of cumulative probability"
- show "       [ 'clip' ]"
- show "       [ 'tight' ]"
+ show "       [ 'clip' ]                   --> restrict data to within frame"
+ show "       [ 'tight' ]                  --> minimum margin around frame"
  show "       [ 'aspect' y/x-ratio ]       --> frame aspect ratio"
- show "       ['frame'] size               --> diagram (frame) size in cm"
- show "       x.type x.label x.format      --> ('linear' | 'log') theLabel %f"
+ show "       ['frame'] ['inch'] size      --> diagram (frame) size in cm (or inch)"
+ show "       x.type x.label x.format      --> ('linear' | 'log') theLabel %g"
  show "       x.start x.end x.Nincs x.Nsubincs x.scaling"
- show "       filename column [[weightColumn] [total] [offset] [label] [ownLine] [ownColor|col.color]]"
+ show "       filename column [weightColumn] [total] [offset] [label] [line] [linewidth] [color]"
  show "     [ filename column ... ]"
  show ""
  show "Nincs:          number of increments for major tick labeling"
@@ -520,9 +550,6 @@ else
  show "                'rgb 0..1 0..1 0..1'"
  show "                'hsb 0..1 0..1 0..1'"
  show ""
- show "                Color can be drawn from a data column (with values from 0 to 1)"
- show "                if special color code 'z' is selected."
- show ""
  if ..debug..
    show "expecting " .argcount. " per data having " .datacount.
    .i. = 0
@@ -534,7 +561,7 @@ else
  quit
 end if
 
-.size.       = {rpn  1 .arg. + argv atof}
+.size.       = {rpn  1 .arg. + argv atof .inch. *}
 \xtype       = {rpn  2 .arg. + argv} 
 \xlabel      = {rpn  3 .arg. + argv} 
 \xformat     = {rpn  4 .arg. + argv}
@@ -632,32 +659,62 @@ the_datalayout
 .i. = 0
 while {rpn .nFiles. .i. <}
 
+ # ---------- increase file counter ---------
+
+ .i. += 1
+ 
  # ------------ read arguments for this data set -------------
 
  \filename = {rpn 1 .arg. + argv}
  \index    = {rpn 2 .arg. + argv}
+
+ .arg. += 2
+
  if .weightcolumn.
-   \weightColumn  = {rpn 3 .arg. + argv}
+   .arg. += 1
+   \weightColumn  = {rpn .arg. argv}
  else
    \weightColumn  = ""
  end if
+
  if .total.
-   \total  = {rpn "--total '" 3 .weightcolumn. .arg. + + argv strcat "'" strcat}
- end if
- if .offset.
-   \offset  = {rpn "--offset '" 3 .weightcolumn. .total. .arg. + + + argv strcat "'" strcat}
- end if
- if .curvelabel.
-   \label  = {rpn 3 .weightcolumn. .total. .offset. .arg. + + + + argv}
- end if
- if .ownline.
-   \line  = {rpn 3 .weightcolumn. .total. .offset. .curvelabel. .arg. + + + + + argv}
- end if
- if .owncolor.
-   \color  = {rpn 3 .weightcolumn. .total. .offset. .curvelabel. .ownline. .arg. + + + + + + argv}
+   .arg. += 1
+   \total  = {rpn "--total '" .arg. argv strcat "'" strcat}
  end if
 
- show {rpn "plot_distribution.gri: " "\filename" strcat }
+ if .offset.
+   .arg. += 1
+   \offset  = {rpn "--offset '" .arg. argv strcat "'" strcat}
+ end if
+
+ if .curvelabel.
+   .arg. += 1
+   \label  = {rpn .arg. argv}
+ end if
+
+ if .ownline.
+   .arg. += 1
+   \line   = {rpn .arg. argv}
+ end if
+
+ if .ownlinewidth.
+   .arg. += 1
+   .linewidth. = {rpn .arg. argv atof}
+ end if
+
+ if .owncolor.
+   .arg. += 1
+   \color  =  {rpn .arg. argv}
+ end if
+
+ show "plot_distribution.gri: \filename"
+
+
+ # ------------ set curve geometry --------------
+ 
+  if .ownlinewidth.
+    set line width .linewidth.
+  end if
 
 
  # ------------ set color --------------
@@ -665,8 +722,7 @@ while {rpn .nFiles. .i. <}
  if .color.
    set color \color
  else if .colormap.                                 # loop through colormap with constant hue, increasing saturation and decreasing brightness
-   .saturation. = {rpn .i. 1 + .nFiles. /}          # from pure to no hue visible
-   .brightness. = {rpn 1 .i. .nFiles. / - sqrt }    # from bright towards dark
+   .hue. = 0
    if {rpn "red" "\colormap" ==}
      .hue. = 0
    else if {rpn "orange"  "\colormap" ==}
@@ -681,11 +737,14 @@ while {rpn .nFiles. .i. <}
      .hue. = 0.667
    else if {rpn "magenta" "\colormap" ==}
      .hue. = 0.833
-   else # default is grayscale
-     .hue. = 0
-     .saturation. = 0
-     .brightness. = {rpn 1 .i. 1 + .nFiles. / -}
    end if
+   
+   if {rpn "gray" "\colormap" ==}
+     set_graySB &.saturation. &.brightness. .i. .nFiles.
+   else
+     set_SB &.saturation. &.brightness. .i. .nFiles.
+   end if  
+   
    set color hsb .hue. .saturation. .brightness.
  end if
  
@@ -724,13 +783,8 @@ while {rpn .nFiles. .i. <}
 
  if .curvelabel.
    draw label "\label" at {rpn x ..num_col_data.. .i. 1 + * .nFiles. 1 + / @} {rpn y ..num_col_data.. .i. 1 + * .nFiles. 1 + / @}
-end if
+ end if
 
-
- # ---------- increase counter ---------
-
- .i.   += 1
- .arg. += .argcount.
 
 end while
 
