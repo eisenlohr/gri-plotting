@@ -19,6 +19,7 @@ new \
   .gap. \
   .aspect. \
   .frame. \
+  .inch. \
   .nGray. .nRed. .nGreen. .nBlue. .nCyan. .nMagenta. .nYellow. .nOrange. \
   .iGray. .iRed. .iGreen. .iBlue. .iCyan. .iMagenta. .iYellow. .iOrange. \
   .arg. .datastart. \
@@ -585,6 +586,10 @@ get_number  "aspect"  &.arg. &.aspect.  1.0
 
 get_logical "frame"   &.arg. &.frame.   0
 
+# ----- inch -----
+
+get_logical "inch"   &.arg. &.inch.   0
+.inch. = {rpn .inch. 1.54 * 1 +}                    # scaling factor for .size. (2.54 if inch else 1)
 
 # ++++++++++ option parsing done ++++++++++++
 
@@ -611,7 +616,7 @@ else
  show "                [ 'clip' ]"
  show "                [ 'tight' ]"
  show "                [ 'aspect' y/x-ratio ]"
- show "                ['frame'] size "
+ show "                ['frame'] ['inch'] size "
  show "                x.type  x.label x.format"
  show "                x.start x.end   x.Nincs x.Nsubincs x.scaling"
  show "                y.type  y.label y.format"
@@ -658,7 +663,7 @@ else
  quit
 end if
 
-.size.       = {rpn  1 .arg. + argv atof}
+.size.       = {rpn  1 .arg. + argv atof .inch. *}
 \xtype       = {rpn  2 .arg. + argv} 
 \xlabel      = {rpn  3 .arg. + argv} 
 \xformat     = {rpn  4 .arg. + argv}
