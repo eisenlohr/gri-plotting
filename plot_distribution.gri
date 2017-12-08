@@ -782,7 +782,7 @@ while {rpn .nFiles. .i. <}
  # ------------- draw label ----------------
 
  if .curvelabel.
-   draw label "\label" at {rpn x ..num_col_data.. .i. 1 + * .nFiles. 1 + / @} {rpn y ..num_col_data.. .i. 1 + * .nFiles. 1 + / @}
+   draw label "\label" at {rpn x ..num_col_data.. .i. * .nFiles. 1 + / @ xusertocm "x" width + } {rpn y ..num_col_data.. .i. * .nFiles. 1 + / @ yusertocm } cm
  end if
 
 
