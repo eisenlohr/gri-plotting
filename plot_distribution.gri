@@ -335,7 +335,7 @@ new \
 # ----- process restrictions -----
 
 get_number "process" &.arg. &.noise. 0
-sprintf \noise  "%i" .noise.
+sprintf \noise  "%.0f" .noise.
 if {rpn 10 .noise. > }
   show .noise. " steps restriction"
 else if {rpn 0 .noise. > }
