@@ -38,7 +38,9 @@ new \
 .color. = 0
 .colorByData. = 0
 .zhue. = 0
+\zhue = ""
 .hasZhue. = 0
+.ownZhue. = 0
 .owncolor. = 0
 \color = ""
 .colormap. = 1
@@ -86,6 +88,23 @@ new \
 {
   \.word1. = 0                                    # zero saturation => gray scale
   \.word2. = {rpn 1 \.word3. \.word4. / - }       # brightness from bright towards dark
+}
+
+#-------------------------------------------------------------------------
+`get_stringOrNumber "\key" &.pos. &\string .defaultString. &.number. .defaultNumber.'
+{
+  if {rpn "\.word1." \.word2. 1 + argv ==}        # check match
+    \.word3.  = {rpn \.word2. 2 + argv}           # assign string value
+    \.word5.  = {rpn \.word2. 2 + argv atof}      # assign numeral value
+    \.word2. += 2                                 # advance position
+  else if {rpn \.words. 7 ==}                     # has default?
+    \.word3. = "\.word4."                         # assign if key not found
+    \.word5. = \.word6.                           # assign if key not found
+  end if
+  if ..debug..
+    show "string  : \.word1.  \.word3.    default  '\.word4.'"
+    show "number  : \.word1.  \.word5.    default  '\.word6.'"
+  end if
 }
 
 #-------------------------------------------------------------------------
@@ -402,14 +421,12 @@ end if
 
 # ----- linewidth -----
 
-get_string "linewidth" &.arg. &\linewidth ""
+get_stringOrNumber "linewidth" &.arg. &\linewidth "" &.linewidth. 1.5
 if {rpn "own" "\linewidth" ==}                   # own per data set
   .ownlinewidth. = 1
   if ..debug..
     show "own linewidth"
   end if
-else
-  get_number "linewidth" &.arg. &.linewidth. 1.5
 end if
 .argcount. += .ownlinewidth.
 
@@ -441,14 +458,12 @@ end if
 
 # ----- symbolsize -----
 
-get_string "symbolsize" &.arg. &\symbolsize ""
+get_stringOrNumber "symbolsize" &.arg. &\symbolsize "" &.symbolsize. 0.15
 if {rpn "own" "\symbolsize" ==}                  # own per data set
   .ownsymbolsize. = 1
   if ..debug..
     show "own symbolsize"
   end if
-else
-  get_number "symbolsize" &.arg. &.symbolsize. 0.15
 end if
 .argcount. += .ownsymbolsize.
 
@@ -479,8 +494,14 @@ if .color.
   else if {rpn "z" 0 1 "\color" substr ==}         # color from z data set
     .colorByData. = 1
     if {rpn ":" 1 1 "\color" substr ==}            # hue given?
-      .zhue. = {rpn 2 "\color" strlen 2 - "\color" substr atof}
       .hasZhue. = 1
+      \zhue = {rpn 2 "\color" strlen 2 - "\color" substr}
+      if {rpn "own" "\zhue" ==}                    # own hue per data set
+        .ownZhue. = 1
+        .argcount. += 1
+      else
+        .zhue. = {rpn "\zhue" atof}
+      end if
     end if
     \color = "black"
     .argcount. += 1
@@ -604,7 +625,7 @@ else
  show "                [ 'linewidth' (value | 'own') ]"
  show "                [ 'symbol' (name | 'own') ]"
  show "                [ 'symbolsize' (value | 'own') ]"
- show "                [ 'colormap' (name | 'own') | 'color' (name | 'own' | 'z[:hue]') ]"
+ show "                [ 'colormap' (name | 'own') | 'color' (name | 'own' | 'z'[:'own' | hue]) ]"
  show "                [ 'label' ['initial'] ]"
  show "                [ 'noaxes' | 'noxaxis' | 'noyaxis' ]"
  show "                [ 'abs' | 'absx' | 'absy' ]"
@@ -854,6 +875,10 @@ while {rpn .nFiles. .i. <}
  else if .colorByData.
    .arg. += 1
    .zcol.  =  {rpn .arg. argv atof}
+   if .ownZhue.
+     .arg. += 1
+     .zhue. =  {rpn .arg. argv atof}
+ end if
  end if
 
  show "plot.gri: \filename"
