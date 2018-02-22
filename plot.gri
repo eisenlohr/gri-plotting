@@ -6,6 +6,7 @@
 .argcount. = 3                                                            # filename x y
 
 new \
+  .back. \
   .clip. \
   .tight. \
   .line. .ownline. .ownlinewidth. \line .linewidth. \
@@ -590,6 +591,10 @@ else
   set missing value .gap.    # read "missing value"
 end if
 
+# ----- back -----
+
+get_logical "back"    &.arg. &.back.    0
+
 # ----- clip -----
 
 get_logical "clip"    &.arg. &.clip.    0
@@ -633,6 +638,7 @@ else
  show "                  x2.type  x2.label x2.format x2.start x2.end x2.Nincs x2.Nsubincs"
  show "                  y2.type  y2.label y2.format y2.start y2.end y2.Nincs x2.Nsubincs ]"
  show "                [ 'gap' value ]"
+ show "                [ 'back' ]"
  show "                [ 'clip' ]"
  show "                [ 'tight' ]"
  show "                [ 'aspect' y/x-ratio ]"
@@ -762,10 +768,12 @@ the_info
 
 # ----- axes behind data -----
 
-if .clip.
+if {rpn .clip. .back. or}
   the_dataframe
-  set clip postscript on
   set axes style none
+  if .clip.
+    set clip postscript on
+  end if
 else
   the_axes
 end if
@@ -878,7 +886,7 @@ while {rpn .nFiles. .i. <}
    if .ownZhue.
      .arg. += 1
      .zhue. =  {rpn .arg. argv atof}
- end if
+   end if
  end if
 
  show "plot.gri: \filename"
@@ -1113,7 +1121,7 @@ end while
 # +++++ draw axes in front of data +++++
 
 
-if .clip. 
+if {rpn .clip. .back. or}
   the_axes
 end if
 
