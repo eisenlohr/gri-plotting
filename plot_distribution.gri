@@ -14,7 +14,7 @@ new \
   .clip. \
   .tight. \
   .line. .ownline. .ownlinewidth. \line .linewidth. \
-  .color. .owncolor. \color .colormap. \colormap \
+  .color. .owncolor. \color .colormap. .owncolormap. \colormap \
   .curvelabel. \
   .axislabelx. .axislabely. \
   .abs. .pos. .neg. \
@@ -23,7 +23,10 @@ new \
   \ylabel \
   .aspect. \
   .frame. .inch. \
-  .arg. \
+  .arg. .datastart. \
+  .nGray. .nRed. .nGreen. .nBlue. .nCyan. .nMagenta. .nYellow. .nOrange. \
+  .iGray. .iRed. .iGreen. .iBlue. .iCyan. .iMagenta. .iYellow. .iOrange. \
+  .iHSB. .nHSB. \
   .hue. .saturation. .brightness.
 
 .total. = 0
@@ -36,7 +39,8 @@ new \
 .owncolor. = 0
 \color = ""
 .colormap. = 1
-\colormap = "gray"
+.owncolormap. = 0
+\colormap = ""
 
 .curvelabel. = 0
 .axislabelx. = 1
@@ -46,6 +50,25 @@ new \
 \restriction = ""
 \skip = ""
 \offset = ""
+
+.nGray. = 0
+.nRed. = 0
+.nGreen. = 0
+.nBlue. = 0
+.nCyan. = 0
+.nMagenta. = 0
+.nYellow. = 0
+.nOrange. = 0
+
+.iGray. = 0
+.iRed. = 0
+.iGreen. = 0
+.iBlue. = 0
+.iCyan. = 0
+.iMagenta. = 0
+.iYellow. = 0
+.iOrange. = 0
+
 
 .arg. = 0
 
@@ -415,23 +438,35 @@ else
 end if
 .argcount. += .ownlinewidth.
 
-# ----- color(map) -----
-\arg = {rpn .arg. 1 + argv}
-if {rpn "colormap" "\arg" ==}                    # check for optional drawing restriction
-  .colormap. = 1
-  .color. = 0
-  \colormap = {rpn .arg. 2 + argv}               # read colormap
-  .arg. += 2
-else if {rpn "color" "\arg" ==}                  # check for optional drawing restriction
-  .color. = 1
-  .colormap. = 0
-  \color = {rpn .arg. 2 + argv}                  # read color
-  if {rpn "own" "\color" ==}                     # color per data set
+# ----- colormap -----
+
+get_string "colormap" &.arg. &\colormap ""
+
+if {rpn "" "\colormap" ==}                       # no colormap
+  \colormap = "gray"                             # default
+  .color. = 1                                    # need color definition
+else if {rpn "own" "\colormap" ==}               # own per data set
+  .owncolormap. = 1
+  if ..debug..
+    show "own colormap"
+  end if
+end if
+.argcount. += .owncolormap.
+
+# ----- color -----
+
+if .color.
+  get_string "color" &.arg. &\color ""
+  if {rpn "" "\color" ==}                          # no color
+    .color. = 0
+  else if {rpn "own" "\color" ==}                  # own per data set
     .owncolor. = 1
     .argcount. += 1
+  else                                             # global color
+    .colormap. = 0                                 # switch off colormap
   end if
-  .arg. += 2
 end if
+
 
 # ----- label -----
 
@@ -519,8 +554,7 @@ else
  show "       [ 'pos' | 'neg']             --> use positive | negative values"
  show "       [ 'line' (name | 'own') ]"
  show "       [ 'linewidth' (value | 'own') ]"
- show "       [ 'colormap' name |"
- show "         'color'   (name | 'own') ]"
+ show "       [ 'colormap' (name | 'own') | 'color' (name | 'own') ]"
  show "       [ 'label' ]                  --> label each curve"
  show "       [ 'noaxes' | 'noxaxis' | 'noyaxis' ]"
  show "       [ 'secondx' & "
@@ -653,10 +687,60 @@ end if
 the_datalayout
 
 # +++++ loop over input data +++++
+
+.datastart. = .arg.
+
+if .owncolormap.
+
+  if ..debug..
+    show "finding colormap statistics..."
+  end if
+
+  .i. = 0
+
+  while {rpn .nFiles. .i. <}
+
+  \owncolormap = {rpn .arg. 2 .curvelabel. .ownline. .ownlinewidth. .owncolormap. + + + + + argv}
+  if {rpn "\owncolormap" "gray" ==}
+   .nGray. += 1
+  else if {rpn "\owncolormap" "red" ==}
+   .nRed. += 1
+  else if {rpn "\owncolormap" "green" ==}
+   .nGreen. += 1
+  else if {rpn "\owncolormap" "blue" ==}
+   .nBlue. += 1
+  else if {rpn "\owncolormap" "cyan" ==}
+   .nCyan. += 1
+  else if {rpn "\owncolormap" "magenta" ==}
+   .nMagenta. += 1
+  else if {rpn "\owncolormap" "yellow" ==}
+   .nYellow. += 1
+  else if {rpn "\owncolormap" "orange" ==}
+   .nOrange. += 1
+  else
+    show "colormap '\owncolormap' of file " {rpn .arg. 1 + argv} " is invalid!"
+    quit
+  end if
+
+   # ---------- increase counter ---------
+
+   .i.   += 1
+   .arg. += .argcount.
+
+  end while
+
+end if
+
+
 # +++++ loop over distributions +++++
 
+# ++++++++++++++++++++++++++++++++
+# +++++ loop over input data +++++
+# ++++++++++++++++++++++++++++++++
 
 .i. = 0
+.arg. = .datastart.
+
 while {rpn .nFiles. .i. <}
 
  # ---------- increase file counter ---------
@@ -707,6 +791,14 @@ while {rpn .nFiles. .i. <}
    \color  =  {rpn .arg. argv}
  end if
 
+ if .owncolormap.
+   .arg. += 1
+   \colormap  =  {rpn .arg. argv}
+ else if .owncolor.
+   .arg. += 1
+   \color  =  {rpn .arg. argv}
+ end if
+
  show "plot_distribution.gri: \filename"
 
 
@@ -722,27 +814,57 @@ while {rpn .nFiles. .i. <}
  if .color.
    set color \color
  else if .colormap.                                 # loop through colormap with constant hue, increasing saturation and decreasing brightness
-   .hue. = 0
    if {rpn "red" "\colormap" ==}
+     .iRed. += 1
+     .iHSB. = .iRed.
+     .nHSB. = .nRed.
      .hue. = 0
-   else if {rpn "orange"  "\colormap" ==}
+   else if {rpn "orange" "\colormap" ==}
+     .iOrange. += 1
+     .iHSB. = .iOrange.
+     .nHSB. = .nOrange.
      .hue. = 0.083
-   else if {rpn "yellow"  "\colormap" ==}
+   else if {rpn "yellow" "\colormap" ==}
+     .iYellow. += 1
+     .iHSB. = .iYellow.
+     .nHSB. = .nYellow.
      .hue. = 0.167
-   else if {rpn "green"   "\colormap" ==}
+   else if {rpn "green" "\colormap" ==}
+     .iGreen. += 1
+     .iHSB. = .iGreen.
+     .nHSB. = .nGreen.
      .hue. = 0.333
-   else if {rpn "cyan"    "\colormap" ==}
+   else if {rpn "cyan" "\colormap" ==}
+     .iCyan. += 1
+     .iHSB. = .iCyan.
+     .nHSB. = .nCyan.
      .hue. = 0.5
-   else if {rpn "blue"    "\colormap" ==}
+   else if {rpn "blue" "\colormap" ==}
+     .iBlue. += 1
+     .iHSB. = .iBlue.
+     .nHSB. = .nBlue.
      .hue. = 0.667
    else if {rpn "magenta" "\colormap" ==}
+     .iMagenta. += 1
+     .iHSB. = .iMagenta.
+     .nHSB. = .nMagenta.
      .hue. = 0.833
-   end if
-   
-   if {rpn "gray" "\colormap" ==}
-     set_graySB &.saturation. &.brightness. .i. .nFiles.
    else
-     set_SB &.saturation. &.brightness. .i. .nFiles.
+     .iGray. += 1
+     .iHSB. = .iGray.
+     .nHSB. = .nGray.
+     .hue. = 0
+   end if
+
+   if ! .owncolormap.
+     .iHSB. = .i.
+     .nHSB. = .nFiles.
+   end if
+
+   if {rpn "gray" "\colormap" ==}
+     set_graySB &.saturation. &.brightness. .iHSB. .nHSB.
+   else
+     set_SB &.saturation. &.brightness. .iHSB. .nHSB.
    end if  
    
    set color hsb .hue. .saturation. .brightness.
