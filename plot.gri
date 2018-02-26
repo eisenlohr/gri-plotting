@@ -588,7 +588,7 @@ get_number "gap" &.arg. &.gap. "\.missingvalue."
 if {rpn .gap. -1 < .gap. 100 > and} # prevent for optional value indicating a gap in data
   show "dangerous gap value: " .gap.
 else
-  set missing value .gap.    # read "missing value"
+  set missing value .gap.
 end if
 
 # ----- back -----
