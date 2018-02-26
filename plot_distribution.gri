@@ -786,11 +786,6 @@ while {rpn .nFiles. .i. <}
    .linewidth. = {rpn .arg. argv atof}
  end if
 
- if .owncolor.
-   .arg. += 1
-   \color  =  {rpn .arg. argv}
- end if
-
  if .owncolormap.
    .arg. += 1
    \colormap  =  {rpn .arg. argv}
