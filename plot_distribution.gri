@@ -8,6 +8,7 @@
 
 new \
   .noise. \
+  .invert. \
   .weightcolumn. \
   \total \
   .offset. \
@@ -47,6 +48,7 @@ new \
 .axislabely. = 1
 
 \weighted = ""
+\inverted = ""
 \restriction = ""
 \skip = ""
 \offset = ""
@@ -365,6 +367,13 @@ else if {rpn 0 .noise. > }
   show .noise. " noisy copies"
 end if
 
+# ----- inverted -----
+
+get_logical "invert" &.arg. &.invert. 0
+if .invert.
+  \inverted = "--invert"
+end if
+
 # ----- weighted -----
 
 get_logical "weighted" &.arg. &.weightcolumn. 0
@@ -546,6 +555,7 @@ else
  show "usage: plot_distribution.gri "
  show "       [ 'process' noise |          --> use NOISE (<=10) noisy copies per value"
  show "                   limit ]          --> limit distribution to LIMIT (>10) values"
+ show "       [ 'invert' ]                 --> invert cumulative probability direction"
  show "       [ 'weighted' ]               --> weight distribution by secondary column value instead of number"
  show "       [ 'total' (value | 'own') ]  --> total number of observations across multiple series"
  show "       [ 'offset' ]                 --> with individual series offset"
@@ -869,9 +879,9 @@ while {rpn .nFiles. .i. <}
  # ------------ process distribution --------------
 
  if .noise.
-  open "make_cumprob \weighted \weightColumn \total \offset \restriction \skip -n \noise -c \index \"\filename\" |"
+  open "make_cumprob \inverted \weighted \weightColumn \total \offset \restriction \skip -n \noise -c \index \"\filename\" |"
  else
-  open "make_cumprob \weighted \weightColumn \total \offset \restriction \skip           -c \index \"\filename\" |"
+  open "make_cumprob \inverted \weighted \weightColumn \total \offset \restriction \skip           -c \index \"\filename\" |"
  end if
 
 
