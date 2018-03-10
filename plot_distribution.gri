@@ -710,7 +710,7 @@ if .owncolormap.
 
   while {rpn .nFiles. .i. <}
 
-  \owncolormap = {rpn .arg. 2 .curvelabel. .ownline. .ownlinewidth. .owncolormap. + + + + + argv}
+  \owncolormap = {rpn .arg. 2 .weightcolumn. .total. .offset. .curvelabel. .ownline. .ownlinewidth. .owncolormap. + + + + + + + + argv}
   if {rpn "\owncolormap" "gray" ==}
    .nGray. += 1
   else if {rpn "\owncolormap" "red" ==}
