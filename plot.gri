@@ -674,7 +674,7 @@ else
  show "                'rgb 0..1 0..1 0..1'"
  show "                'hsb 0..1 0..1 0..1'"
  show ""
- show "                Color can be drawn from a data column (with values from 0 to 1)"
+ show "                Color can be drawn from a data column (with values from 0 as black to 1 as white)"
  show "                if special color code 'z' is selected."
  show ""
 
