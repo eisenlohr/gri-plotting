@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-
+from __future__ import print_function
 import os,sys,re,subprocess
 from optparse import OptionParser
 
@@ -26,7 +26,7 @@ for inName in inNames:
     inFile = open(inName)
     input = inFile.readlines()
     inFile.close()
-    print inName
+    print(inName)
     while input[-1].strip() != '%%Trailer':
       line = input.pop().strip()
       m = re.search(r'^\%\%(\w*):\s+(.*)$', line)
@@ -50,10 +50,10 @@ for inName in inNames:
     except:
       try:
         subprocess.call(["pstopdf",outName])
-        print "use 'pstopdf' instead of 'epstopdf'"
+        print("use 'pstopdf' instead of 'epstopdf'")
       except:
         subprocess.call(["ps2pdf","-dEPSCrop",outName])
-        print "use 'ps2pdf' instead of 'epstopdf'"
+        print("use 'ps2pdf' instead of 'epstopdf'")
 
     pdfName = os.path.splitext(inName)[0]+'.pdf'
     if not (options.keep or options.keepeps):                       os.remove(outName)
