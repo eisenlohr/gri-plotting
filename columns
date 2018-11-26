@@ -33,15 +33,23 @@ parser.add_option('-c','--comma',
                   dest = 'separator',
                   help = 'set column output separator to ","')
 
-parser.set_defaults(separator = ' ')
+parser.add_option('-o','--onlycolumns',
+                  action = 'store_false',
+                  dest = 'filename',
+                  help = 'only report columns')
+
+parser.set_defaults(separator = ' ',
+                    filename = True,
+                   )
 
 (options, columns) = parser.parse_args()
 
 if len(columns) < 1:
   parser.error('no labels specified.')
 
-if not sys.stdin.isatty():
+if not (sys.stdin.isatty() or os.path.exists(columns[-1])):
   file = {'name':None, 'input':sys.stdin,}
+  sys.stderr.write("COLUMNS uses stdin\n")
 elif os.path.exists(columns[-1]):
   name = columns.pop()
   file = {'name':name, 'input':open(name),}
@@ -61,6 +69,6 @@ file['input'].close()
 headers = map(lambda s:re.sub(r'^["\']|["\']$', '', s), 
               re.findall(r'(?:[^\s,"]|"(?:\\.|[^"])*")+', line))
 
-print '\t'.join(([file['name']] if file['name'] else []) +
+print '\t'.join(([file['name']] if file['name'] and options.filename else []) +
                 [options.separator.join(map(str,[1+headers.index(heading) for heading in columns if heading in headers]))]
                )
