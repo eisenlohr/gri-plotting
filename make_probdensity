@@ -1,6 +1,11 @@
 #!/usr/bin/env python
 
-import os,sys,re,math,random,StringIO,numpy
+from __future__ import print_function
+import os,sys,re,math,random,numpy as np
+try:
+    from StringIO import StringIO
+except ImportError:
+    from io import StringIO
 from optparse import OptionParser
 
 
@@ -49,12 +54,12 @@ else:
 m = re.search('^(\d+)\s+head',content,re.I)
 skip = 1+int(m.group(1)) if m else 0
 
-filedata = numpy.loadtxt(StringIO.StringIO(content),skiprows = skip,usecols = [options.column-1])
+filedata = np.loadtxt(StringIO(content),skiprows = skip,usecols = [options.column-1])
 data = filedata[filedata != options.skip] if options.skip != None else filedata
 
 if options.noise > 0 and options.noise <= 10: # if noise requested 
-  numpy.random.seed()
-  noise = min(abs(data))*(numpy.random.rand(len(data),options.noise)-0.5)    # random scatter between +1 and -1
+  np.random.seed()
+  noise = min(abs(data))*(np.random.rand(len(data),options.noise)-0.5)    # random scatter between +1 and -1
   data = (data.reshape((len(data),option.noise))+noise).reshape(len(data)*options.noise)
 
 if options.absolute: data = abs(data)      # restrict to absolute values ?
@@ -105,4 +110,4 @@ if F > F0:                                                    # missing last int
     probdensity[-1][2:] = [(data[i]+probdensity[-1][0])/2.,(1.-probdensity[-1][1])/(data[i]-probdensity[-1][0])]
 
 for f in probdensity:
-  print f[2],f[3]
+  print(f[2],f[3])

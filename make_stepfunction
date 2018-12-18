@@ -1,5 +1,6 @@
 #!/usr/bin/python
 
+from __future__ import print_function
 import os,sys,re
 from optparse import OptionParser 
 
@@ -58,4 +59,4 @@ elif options.position == 'center':
 	stepdata.append([1.5*data[-1][0]-0.5*data[-2][0], data[-1][1]])
 
 for item in stepdata:														# output data to stdout
-	print '%g\t%g'%(item[0],item[1])
+	print('%g\t%g'%(item[0],item[1]))
