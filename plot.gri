@@ -88,7 +88,7 @@ new \
 `set_graySB &.S. &.B. .i. .N.'
 {
   \.word1. = 0                                    # zero saturation => gray scale
-  \.word2. = {rpn 1 \.word3. \.word4. / - }       # brightness from bright towards dark
+  \.word2. = {rpn 1 \.word3. \.word4. / - 0.9 power} # brightness from bright towards dark
 }
 
 #-------------------------------------------------------------------------
