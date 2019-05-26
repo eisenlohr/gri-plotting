@@ -191,7 +191,7 @@ new \
   end if
 
   if .axislabely.
-    .leftmargin.   = {rpn "\ytickmin" width "\ytickmax" width sup "\ylabel" ascent "\ylabel" descent + 2 * + .leftmargin. sup}
+    .leftmargin.   = {rpn "\ytickmin " width "\ytickmax " width sup "\ylabel" ascent "\ylabel" descent + 2 * + .leftmargin. sup}
     .bottommargin. = {rpn "\ytickmin" ascent "\ytickmin" descent + .bottommargin. sup}
     .topmargin.    = {rpn "\ytickmax" ascent "\ytickmax" descent + .topmargin. sup}
   end if

@@ -208,12 +208,12 @@ new \
   end if
 
   if .axislabely.
-    .leftmargin.   = {rpn "\ytickmin" width "\ytickmax" width sup "\ylabel" ascent "\ylabel" descent + 2 * + .leftmargin. sup}
+    .leftmargin.   = {rpn "\ytickmin " width "\ytickmax " width sup "\ylabel" ascent "\ylabel" descent + 2 * + .leftmargin. sup}
     .bottommargin. = {rpn "\ytickmin" ascent "\ytickmin" descent + .bottommargin. sup}
     .topmargin.    = {rpn "\ytickmax" ascent "\ytickmax" descent + .topmargin. sup}
   end if
   if .secondy.
-    .rightmargin.  = {rpn "\y2tickmin" width "\y2tickmax" width sup "\y2label" ascent "\y2label" descent + 2 * + .rightmargin. sup}
+    .rightmargin.  = {rpn "\y2tickmin " width "\y2tickmax " width sup "\y2label" ascent "\y2label" descent + 2 * + .rightmargin. sup}
     .bottommargin. = {rpn "\ytickmin2" ascent "\ytickmin2" descent + .bottommargin. sup}
     .topmargin.    = {rpn "\ytickmax2" ascent "\ytickmax2" descent + .topmargin. sup}
   end if
