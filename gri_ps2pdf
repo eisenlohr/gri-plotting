@@ -23,10 +23,12 @@ for inName in inNames:
   if os.path.lexists(inName):
     outName = os.path.splitext(inName)[0] + '.eps'
     dict = {}
-    inFile = open(inName)
-    input = inFile.readlines()
-    inFile.close()
-    print(inName)
+    with open(inName) as inFile:
+      input = inFile.readlines()
+
+    head,tail = os.path.split(inName)
+    print('\x1b[2m'+head+'/'+'\x1b[0m'+tail)
+
     while input[-1].strip() != '%%Trailer':
       line = input.pop().strip()
       m = re.search(r'^\%\%(\w*):\s+(.*)$', line)
@@ -35,16 +37,16 @@ for inName in inNames:
 
     if os.path.lexists(outName):
       os.remove(outName)
-    outFile = open(outName,'w')
-    for line in input:
-      line = line.strip()
-      m = re.search(r'^\%\%(\w*):\s+\(atend\)$', line)
-      if (m != None):
-        line = '%%%%%s: %s'%(m.group(1),dict[m.group(1)])
-      elif re.search(r'^\%\%TemplateBox:.*?$', line) != None:
-        line = '%%%%TemplateBox: %s'%dict['BoundingBox']
-      outFile.write('%s\n'%line)
-    outFile.close()
+    with open(outName,'w') as outFile:
+      for line in input:
+        line = line.strip()
+        m = re.search(r'^\%\%(\w*):\s+\(atend\)$', line)
+        if (m != None):
+          line = '%%%%%s: %s'%(m.group(1),dict[m.group(1)])
+        elif re.search(r'^\%\%TemplateBox:.*?$', line) != None:
+          line = '%%%%TemplateBox: %s'%dict['BoundingBox']
+        outFile.write('%s\n'%line)
+
     try:
       subprocess.call(["epstopdf",outName])
     except:
