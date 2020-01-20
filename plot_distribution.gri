@@ -404,7 +404,7 @@ get_logical "offset" &.arg. &.offset. 0
 
 get_string "skip" &.arg. &\skip ""
 if {rpn "" "\skip" == not}
-  \skip = {rpn "-s '" \skip strcat "'" strcat}
+  \skip = {rpn "-s '" "\skip" strcat "'" strcat}
 end if
 
 # ----- abs -----
