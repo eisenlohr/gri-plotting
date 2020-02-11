@@ -56,23 +56,23 @@ new \
 
 .nGray. = 0
 .nRed. = 0
-.nGreen. = 0
-.nBlue. = 0
-.nCyan. = 0
-.nMagenta. = 0
-.nYellow. = 0
-.nPurple. = 0
 .nOrange. = 0
+.nYellow. = 0
+.nGreen. = 0
+.nCyan. = 0
+.nBlue. = 0
+.nPurple. = 0
+.nMagenta. = 0
 
 .iGray. = 0
 .iRed. = 0
-.iGreen. = 0
-.iBlue. = 0
-.iCyan. = 0
-.iMagenta. = 0
-.iYellow. = 0
-.iPurple. = 0
 .iOrange. = 0
+.iYellow. = 0
+.iGreen. = 0
+.iCyan. = 0
+.iBlue. = 0
+.iPurple. = 0
+.iMagenta. = 0
 
 .arg. = 0
 
