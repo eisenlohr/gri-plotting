@@ -94,6 +94,23 @@ new \
 }
 
 #-------------------------------------------------------------------------
+`get_stringOrNumber "\key" &.pos. &\string .defaultString. &.number. .defaultNumber.'
+{
+  if {rpn "\.word1." \.word2. 1 + argv ==}        # check match
+    \.word3.  = {rpn \.word2. 2 + argv}           # assign string value
+    \.word5.  = {rpn \.word2. 2 + argv atof}      # assign numeral value
+    \.word2. += 2                                 # advance position
+  else if {rpn \.words. 7 ==}                     # has default?
+    \.word3. = "\.word4."                         # assign if key not found
+    \.word5. = \.word6.                           # assign if key not found
+  end if
+  if ..debug..
+    show "string  : \.word1.  \.word3.    default  '\.word4.'"
+    show "number  : \.word1.  \.word5.    default  '\.word6.'"
+  end if
+}
+
+#-------------------------------------------------------------------------
 `get_string "\key" &.pos. &\string .default.'
 {
   if {rpn "\.word1." \.word2. 1 + argv ==}        # check match
@@ -169,7 +186,7 @@ new \
   set font size .labelfont.
   set line width axis 0.5
 
-  if .tight.  
+  if .tight.
     .leftmargin.    = {rpn ..linewidthaxis.. pttocm}
     .rightmargin.   = {rpn ..linewidthaxis.. pttocm 2 *}
     .bottommargin.  = {rpn ..linewidthaxis.. pttocm}
@@ -197,7 +214,7 @@ new \
     .bottommargin. = {rpn "\ytickmin" ascent "\ytickmin" descent + .bottommargin. sup}
     .topmargin.    = {rpn "\ytickmax" ascent "\ytickmax" descent + .topmargin. sup}
   end if
-  
+
   if .frame.
     .diagramsize. = .size.
     .size. = {rpn .leftmargin. .rightmargin. + .diagramsize. +}
@@ -210,7 +227,7 @@ new \
   set y margin .bottommargin.
   set x size .diagramsize.
   set y size {rpn .aspect. .diagramsize. *}
-  
+
   if ..debug..
    show "margin left   " .leftmargin.
    show "margin right  " .rightmargin.
@@ -247,7 +264,7 @@ new \
   set font size .tickfont.
   set x name ""
   set y name ""
-  
+
   set clip postscript off
 
 
@@ -288,7 +305,7 @@ new \
     end if
     draw x axis at top
   end if
-  
+
   delete x scale
   if .axislabelx.
     set x format "\xformat"
@@ -438,14 +455,12 @@ end if
 
 # ----- linewidth -----
 
-get_string "linewidth" &.arg. &\linewidth ""
+get_stringOrNumber "linewidth" &.arg. &\linewidth "" &.linewidth. 1.5
 if {rpn "own" "\linewidth" ==}                   # own per data set
   .ownlinewidth. = 1
   if ..debug..
     show "own linewidth"
   end if
-else
-  get_number "linewidth" &.arg. &.linewidth. 1.5
 end if
 .argcount. += .ownlinewidth.
 
@@ -495,8 +510,8 @@ get_bitfield "noaxes" "noxaxis" "noyaxis" &.arg. &.axislabelx. &.axislabely.
 get_logical "secondx" &.arg. &.secondx. 0
 
 if .secondx.
-  \x2type      = {rpn  1 .arg. + argv} 
-  \x2label     = {rpn  2 .arg. + argv} 
+  \x2type      = {rpn  1 .arg. + argv}
+  \x2label     = {rpn  2 .arg. + argv}
   \x2format    = {rpn  3 .arg. + argv}
   .x2start.    = {rpn  4 .arg. + argv atof}
   .x2end.      = {rpn  5 .arg. + argv atof}
@@ -507,8 +522,8 @@ if .secondx.
     .x2smlinc. = .x2Nsubincs.                  # for log axes negative sign suppresses subticks
     sprintf \x2tickmin "%.0f" {rpn .x2start. log}
     sprintf \x2tickmax "%.0f" {rpn .x2end. log}
-    \x2tickmin = {rpn "10" "\x2tickmin" strcat} 
-    \x2tickmax = {rpn "10" "\x2tickmax" strcat} 
+    \x2tickmin = {rpn "10" "\x2tickmin" strcat}
+    \x2tickmax = {rpn "10" "\x2tickmax" strcat}
   else
     .x2biginc. = {rpn .x2end. .x2start. - .x2Nincs. 1 sup /}
     .x2smlinc. = {rpn .x2biginc. 1 .x2Nsubincs. sup /}
@@ -546,7 +561,7 @@ get_logical "inch"   &.arg. &.inch.   0
 
 # ++++++++++ option parsing done ++++++++++++
 
-.datacount. = {rpn argc 1 - .mandatorycount. .arg. + -} 
+.datacount. = {rpn argc 1 - .mandatorycount. .arg. + -}
 if {rpn 0 .datacount. .argcount. remainder == 0 .datacount. >= and}
  .nFiles. = {rpn .datacount. .argcount. /}
  if ..debug..
@@ -608,8 +623,8 @@ else
 end if
 
 .size.       = {rpn  1 .arg. + argv atof .inch. *}
-\xtype       = {rpn  2 .arg. + argv} 
-\xlabel      = {rpn  3 .arg. + argv} 
+\xtype       = {rpn  2 .arg. + argv}
+\xlabel      = {rpn  3 .arg. + argv}
 \xformat     = {rpn  4 .arg. + argv}
 .xstart.     = {rpn  5 .arg. + argv atof}
 .xend.       = {rpn  6 .arg. + argv atof}
@@ -621,8 +636,8 @@ if {rpn "log" "\xtype" ==}
   .xsmlinc. = .xNsubincs.                  # for log axes negative sign suppresses subticks
   sprintf \xtickmin "%.0f" {rpn .xstart. log}
   sprintf \xtickmax "%.0f" {rpn .xend. log}
-  \xtickmin = {rpn "10" "\xtickmin" strcat} 
-  \xtickmax = {rpn "10" "\xtickmax" strcat} 
+  \xtickmin = {rpn "10" "\xtickmin" strcat}
+  \xtickmax = {rpn "10" "\xtickmax" strcat}
 else
   .xbiginc. = {rpn .xend. .xstart. - .xNincs. 1 sup /}
   .xsmlinc. = {rpn .xbiginc. 1 .xNsubincs. sup /}
@@ -643,8 +658,8 @@ if {rpn "log" "\ytype" ==}
   .ysmlinc. = .yNsubincs.                 # for log axes negative sign suppresses subticks
   sprintf \ytickmin "%.0f" {rpn .ystart. log}
   sprintf \ytickmax "%.0f" {rpn .yend. log}
-  \ytickmin = {rpn "10" "\ytickmin" strcat} 
-  \ytickmax = {rpn "10" "\ytickmax" strcat} 
+  \ytickmin = {rpn "10" "\ytickmin" strcat}
+  \ytickmax = {rpn "10" "\ytickmax" strcat}
 else
   .ybiginc. = {rpn .yend. .ystart. - .yNincs. 1 sup /}
   .ysmlinc. = {rpn .ybiginc. 1 .yNsubincs. sup /}
@@ -760,7 +775,7 @@ while {rpn .nFiles. .i. <}
  # ---------- increase file counter ---------
 
  .i. += 1
- 
+
  # ------------ read arguments for this data set -------------
 
  \filename = {rpn 1 .arg. + argv}
@@ -812,14 +827,14 @@ while {rpn .nFiles. .i. <}
 
 
  # ------------ set curve geometry --------------
- 
+
   if .ownlinewidth.
     set line width .linewidth.
   end if
 
 
  # ------------ set color --------------
- 
+
  if .color.
    set color \color
  else if .colormap.                                 # loop through colormap with constant hue, increasing saturation and decreasing brightness
@@ -879,11 +894,11 @@ while {rpn .nFiles. .i. <}
      set_graySB &.saturation. &.brightness. .iHSB. .nHSB.
    else
      set_SB &.saturation. &.brightness. .iHSB. .nHSB.
-   end if  
-   
+   end if
+
    set color hsb .hue. .saturation. .brightness.
  end if
- 
+
 
  # ------------ process distribution --------------
 
@@ -914,7 +929,7 @@ while {rpn .nFiles. .i. <}
   draw curve
  end if
 
- 
+
  # ------------- draw label ----------------
 
  if .curvelabel.
@@ -929,7 +944,7 @@ end while
 # +++++ draw axes in front of data +++++
 
 
-if .clip. 
+if .clip.
   the_axes
 end if
 
