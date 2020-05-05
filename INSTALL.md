@@ -3,7 +3,7 @@
 * install the plotting engine `gri` (needs `autoconf` and `automake` packages)
 
 ```bash
-  git clone git@github.com:dankelley/gri.git
+  git clone git@github.com:eisenlohr/gri.git
   cd gri
   aclocal
   autoconf
@@ -18,7 +18,7 @@
 * clone the `gri-plotting` repository
 
 ```bash
-git clone git@gitlab.msu.edu:metal/gri-plotting.git
+git clone git@github.com:eisenlohr/gri-plotting.git
 ```
 
 * add the location of `gri-plotting` to your `$PATH`
