@@ -51,6 +51,7 @@ new \
 .steps.  = 0
 .curvelabel. = 0
 .labelreverse. = 0
+.labeloutside. = 0
 .axislabelx. = 1
 .axislabely. = 1
 
@@ -186,7 +187,7 @@ new \
   set font size .labelfont.
   set line width axis 0.5
 
-  if .tight.  
+  if .tight.
     .leftmargin.    = {rpn ..linewidthaxis.. 0.5 * pttocm}
     .rightmargin.   = {rpn ..linewidthaxis.. 1.5 * pttocm}
     .bottommargin.  = {rpn ..linewidthaxis.. 0.5 * pttocm}
@@ -219,7 +220,7 @@ new \
     .bottommargin. = {rpn "\ytickmin2" ascent "\ytickmin2" descent + .bottommargin. sup}
     .topmargin.    = {rpn "\ytickmax2" ascent "\ytickmax2" descent + .topmargin. sup}
   end if
-  
+
   if .frame.
     .diagramsize. = .size.
     .size. = {rpn .leftmargin. .rightmargin. + .diagramsize. +}
@@ -232,7 +233,7 @@ new \
   set y margin .bottommargin.
   set x size .diagramsize.
   set y size {rpn .aspect. .diagramsize. *}
-  
+
   if ..debug..
    show "margin left   " .leftmargin.
    show "margin right  " .rightmargin.
@@ -270,7 +271,7 @@ new \
   set font size .tickfont.
   set x name ""
   set y name ""
-  
+
   set clip postscript off
 
 
@@ -329,7 +330,7 @@ new \
     end if
     draw x axis at top
   end if
-  
+
   delete x scale
   if .axislabelx.
     set x format "\xformat"
@@ -520,6 +521,7 @@ get_logical "label" &.arg. &.curvelabel. 0
 
 if .curvelabel.
   get_logical "initial" &.arg. &.labelreverse. 0
+  get_logical "outside" &.arg. &.labeloutside. 0
 end if
 
 # ----- noaxes -----
@@ -537,8 +539,8 @@ get_bitfield "abs" "absx" "absy" &.arg. &.absx. &.absy.
 get_bitfield "second" "secondx" "secondy" &.arg. &.secondx. &.secondy.
 
 if .secondx.
-  \x2type      = {rpn  1 .arg. + argv} 
-  \x2label     = {rpn  2 .arg. + argv} 
+  \x2type      = {rpn  1 .arg. + argv}
+  \x2label     = {rpn  2 .arg. + argv}
   \x2format    = {rpn  3 .arg. + argv}
   .x2start.    = {rpn  4 .arg. + argv atof}
   .x2end.      = {rpn  5 .arg. + argv atof}
@@ -549,8 +551,8 @@ if .secondx.
     .x2smlinc. = .x2Nsubincs.                  # for log axes negative sign suppresses subticks
     sprintf \x2tickmin "%.0f" {rpn .x2start. log}
     sprintf \x2tickmax "%.0f" {rpn .x2end. log}
-    \x2tickmin = {rpn "10" "\x2tickmin" strcat} 
-    \x2tickmax = {rpn "10" "\x2tickmax" strcat} 
+    \x2tickmin = {rpn "10" "\x2tickmin" strcat}
+    \x2tickmax = {rpn "10" "\x2tickmax" strcat}
   else
     .x2biginc. = {rpn .x2end. .x2start. - .x2Nincs. 1 sup /}
     .x2smlinc. = {rpn .x2biginc. 1 .x2Nsubincs. sup /}
@@ -561,8 +563,8 @@ if .secondx.
 end if
 
 if .secondy.
-  \y2type      = {rpn  1 .arg. + argv} 
-  \y2label     = {rpn  2 .arg. + argv} 
+  \y2type      = {rpn  1 .arg. + argv}
+  \y2label     = {rpn  2 .arg. + argv}
   \y2format    = {rpn  3 .arg. + argv}
   .y2start.    = {rpn  4 .arg. + argv atof}
   .y2end.      = {rpn  5 .arg. + argv atof}
@@ -573,8 +575,8 @@ if .secondy.
     .y2smlinc. = .y2Nsubincs.                  # for log axes negative sign suppresses subticks
     sprintf \y2tickmin "%.0f" {rpn .y2start. log}
     sprintf \y2tickmax "%.0f" {rpn .y2end. log}
-    \y2tickmin = {rpn "10" "\y2tickmin" strcat} 
-    \y2tickmax = {rpn "10" "\y2tickmax" strcat} 
+    \y2tickmin = {rpn "10" "\y2tickmin" strcat}
+    \y2tickmax = {rpn "10" "\y2tickmax" strcat}
   else
     .y2biginc. = {rpn .y2end. .y2start. - .y2Nincs. 1 sup /}
     .y2smlinc. = {rpn .y2biginc. 1 .y2Nsubincs. sup /}
@@ -620,7 +622,7 @@ get_logical "inch"   &.arg. &.inch.   0
 
 # ++++++++++ option parsing done ++++++++++++
 
-.datacount. = {rpn argc 1 - .mandatorycount. .arg. + -} 
+.datacount. = {rpn argc 1 - .mandatorycount. .arg. + -}
 if {rpn 0 .datacount. .argcount. remainder == 0 .datacount. >= and}
  .nFiles. = {rpn .datacount. .argcount. /}
  if ..debug..
@@ -633,7 +635,7 @@ else
  show "                [ 'symbol' (name | 'own') ]"
  show "                [ 'symbolsize' (value | 'own') ]"
  show "                [ 'colormap' (name | 'own') | 'color' (name | 'own' | 'z'[:'own' | hue]) ]"
- show "                [ 'label' ['initial'] ]"
+ show "                [ 'label' ['initial'] ['outside'] ]"
  show "                [ 'noaxes' | 'noxaxis' | 'noyaxis' ]"
  show "                [ 'abs' | 'absx' | 'absy' ]"
  show "                [ 'second' | 'secondx' | 'secondy' & "
@@ -695,8 +697,8 @@ else
 end if
 
 .size.       = {rpn  1 .arg. + argv atof .inch. *}
-\xtype       = {rpn  2 .arg. + argv} 
-\xlabel      = {rpn  3 .arg. + argv} 
+\xtype       = {rpn  2 .arg. + argv}
+\xlabel      = {rpn  3 .arg. + argv}
 \xformat     = {rpn  4 .arg. + argv}
 .xstart.     = {rpn  5 .arg. + argv atof}
 .xend.       = {rpn  6 .arg. + argv atof}
@@ -708,8 +710,8 @@ if {rpn "log" "\xtype" ==}
   .xsmlinc. = .xNsubincs.                  # for log axes negative sign suppresses subticks
   sprintf \xtickmin "%.0f" {rpn .xstart. log}
   sprintf \xtickmax "%.0f" {rpn .xend. log}
-  \xtickmin = {rpn "10" "\xtickmin" strcat} 
-  \xtickmax = {rpn "10" "\xtickmax" strcat} 
+  \xtickmin = {rpn "10" "\xtickmin" strcat}
+  \xtickmax = {rpn "10" "\xtickmax" strcat}
 else
   .xbiginc. = {rpn .xend. .xstart. - .xNincs. 1 sup /}
   .xsmlinc. = {rpn .xbiginc. 1 .xNsubincs. sup /}
@@ -730,8 +732,8 @@ if {rpn "log" "\ytype" ==}
   .ysmlinc. = .yNsubincs.                 # for log axes negative sign suppresses subticks
   sprintf \ytickmin "%.0f" {rpn .ystart. log}
   sprintf \ytickmax "%.0f" {rpn .yend. log}
-  \ytickmin = {rpn "10" "\ytickmin" strcat} 
-  \ytickmax = {rpn "10" "\ytickmax" strcat} 
+  \ytickmin = {rpn "10" "\ytickmin" strcat}
+  \ytickmax = {rpn "10" "\ytickmax" strcat}
 else
   .ybiginc. = {rpn .yend. .ystart. - .yNincs. 1 sup /}
   .ysmlinc. = {rpn .ybiginc. 1 .yNsubincs. sup /}
@@ -848,7 +850,7 @@ while {rpn .nFiles. .i. <}
  # ---------- increase file counter ---------
 
  .i. += 1
- 
+
  # ------------ read arguments for this data set -------------
 
  \filename = {rpn 1 .arg. + argv}
@@ -900,7 +902,7 @@ while {rpn .nFiles. .i. <}
 
 
  # ------------ set curve geometry --------------
- 
+
   if .ownsymbolsize.
     set symbol size .symbolsize.
     set line width symbol {rpn .symbolsize. 10 *}
@@ -911,7 +913,7 @@ while {rpn .nFiles. .i. <}
 
 
  # ------------ set color --------------
- 
+
  if .color.
    set color \color
  else if .colormap.                                 # loop through colormap with constant hue, increasing saturation and decreasing brightness
@@ -971,37 +973,37 @@ while {rpn .nFiles. .i. <}
      set_graySB &.saturation. &.brightness. .iHSB. .nHSB.
    else
      set_SB &.saturation. &.brightness. .iHSB. .nHSB.
-   end if  
-   
+   end if
+
    set color hsb .hue. .saturation. .brightness.
  end if
- 
+
 
  # ------------- draw stepped line --------------
- 
+
  if .steps.
   sprintf \xcol "%.0f" .xcol.
   sprintf \ycol "%.0f" .ycol.
   open "make_stepfunction \"\filename\" -p \"\position\" \"\xcol\" \"\ycol\" |"
   read columns x y
-  
+
   x *= .xscale.
   y *= .yscale.
-  
-  .j. = 0 
-  while {rpn .j. ..num_col_data.. >} 
+
+  .j. = 0
+  while {rpn .j. ..num_col_data.. >}
    if .absx.
-     {rpn x .j. @ abs .j. "x" = } 
+     {rpn x .j. @ abs .j. "x" = }
    end if
    if .absy.
-     {rpn y .j. @ abs .j. "y" = } 
+     {rpn y .j. @ abs .j. "y" = }
    end if
-   .j. += 1 
-  end while 
+   .j. += 1
+  end while
 
   draw curve
  end if
- 
+
  open "\filename"
 
 
@@ -1021,16 +1023,16 @@ while {rpn .nFiles. .i. <}
   x *= .xscale.
   y *= .yscale.
 
-  .j. = 0 
-  while {rpn .j. ..num_col_data.. >} 
+  .j. = 0
+  while {rpn .j. ..num_col_data.. >}
    if .absx.
-     {rpn x .j. @ abs .j. "x" = } 
+     {rpn x .j. @ abs .j. "x" = }
    end if
    if .absy.
-     {rpn y .j. @ abs .j. "y" = } 
+     {rpn y .j. @ abs .j. "y" = }
    end if
-   .j. += 1 
-  end while 
+   .j. += 1
+  end while
 
   if {rpn "solid" "\line" ==}
     set dash off
@@ -1045,7 +1047,7 @@ while {rpn .nFiles. .i. <}
   draw curve
  end if
 
- 
+
  # ----------------- draw marked points ---------------
 
  if .marker.
@@ -1066,16 +1068,16 @@ while {rpn .nFiles. .i. <}
   x *= .xscale.
   y *= .yscale.
 
-  .j. = 0 
-  while {rpn .j. ..num_col_data.. >} 
+  .j. = 0
+  while {rpn .j. ..num_col_data.. >}
    if .absx.
-     {rpn x .j. @ abs .j. "x" = } 
+     {rpn x .j. @ abs .j. "x" = }
    end if
    if .absy.
-     {rpn y .j. @ abs .j. "y" = } 
+     {rpn y .j. @ abs .j. "y" = }
    end if
-   .j. += 1 
-  end while 
+   .j. += 1
+  end while
 
   set dash off
   if {rpn "wheel" "\symbol" ==}      # "wheel" is special case and composed of two individual symbols
@@ -1087,7 +1089,7 @@ while {rpn .nFiles. .i. <}
       set color hsb .hue. .saturation. .brightness.
     end if
     draw symbol circ
-  else if {rpn "dot" "\symbol" ==} 
+  else if {rpn "dot" "\symbol" ==}
     set symbol size {rpn ..symbolsize.. 2 /}
     if .colorByData.
       if .hasZhue.
@@ -1100,7 +1102,7 @@ while {rpn .nFiles. .i. <}
     end if
     set symbol size {rpn ..symbolsize.. 2 *}
   else if {rpn "none" "\symbol" == }
-  else 
+  else
     if .colorByData.
       if .hasZhue.
         draw symbol \symbol colorrange .zhue.
@@ -1118,14 +1120,28 @@ while {rpn .nFiles. .i. <}
 
  if .curvelabel.
   if .labelreverse.
-   draw label "\label" rightjustified at \
-   {rpn x 0 @ xusertocm "x" width -} \
-   {rpn y 0 @ yusertocm "\label" ascent 2 / -} cm
+    if .labeloutside.
+      draw label "\label" rightjustified at \
+      {rpn x 0 @ xusertocm "x" width -} \
+      {rpn y 0 @ yusertocm "\label" ascent 2 / -} cm
+    else
+      draw label "\label" at \
+      {rpn x 0 @ xusertocm "x" width +} \
+      {rpn y 0 @ yusertocm "\label" ascent 2 / -} cm
+    end if
   else
-   draw label for last curve "\label"
+    if .labeloutside.
+      draw label "\label" at \
+      {rpn ..xlast.. xusertocm "x" width +} \
+      {rpn ..ylast.. yusertocm "\label" ascent 2 / -} cm
+    else
+      draw label "\label" rightjustified at \
+      {rpn ..xlast.. xusertocm "x" width -} \
+      {rpn ..ylast.. yusertocm "\label" ascent 2 / -} cm
+    end if
   end if
  end if
- 
+
 
 end while
 
