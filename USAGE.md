@@ -15,7 +15,7 @@ The `examples/scripts` folder contains a number of fully worked out usage exampl
 
 ## plot.gri
 
-   1. Colored series with a second x axis:
+   1. Colored series with a second x axis and data gaps:
      
    ![](gallery/harmonic_colormap.pdf)
 
