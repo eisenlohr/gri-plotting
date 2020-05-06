@@ -1,28 +1,28 @@
 # Prerequisites
 
-* install the plotting engine `gri` (needs `autoconf` and `automake` packages)
+   * install the plotting engine `gri` (needs `autoconf` and `automake` packages)
 
-```bash
-  git clone git@github.com:eisenlohr/gri.git
-  cd gri
-  aclocal
-  autoconf
-  automake --add-missing
-  ./configure
-  make
-  make install
-```
+   ```bash
+   git clone git@github.com:eisenlohr/gri.git
+   cd gri
+   aclocal
+   autoconf
+   automake --add-missing
+   ./configure
+   make
+   make install
+   ```
 
 # Installation
 
-* clone the `gri-plotting` repository
+   * clone the `gri-plotting` repository
 
-```bash
-git clone git@github.com:eisenlohr/gri-plotting.git
-```
+   ```bash
+   git clone git@github.com:eisenlohr/gri-plotting.git
+   ```
 
-* add the location of `gri-plotting` to your `$PATH`
+   * add the location of `gri-plotting` to your `$PATH`
 
 # Useful configurations
 
-* define an environment variable `$GRI` pointing to the location of the repository clone
+   * define an environment variable `$GRI` pointing to the location of the repository clone
