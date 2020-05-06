@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
 
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
-NAME="$(basename "${BASH_SOURCE[0]%.*}")"
-me=${NAME#plot_}
-DATA="$DIR/../data/${me%_*}.txt"
-figure="$DIR/../../gallery/${me}"
+SOURCE="$(basename "${BASH_SOURCE[0]}")"
+BASENAME=$([[ $SOURCE =~ plot_(.*)\.sh ]] && echo ${BASH_REMATCH[1]})
+DATA="$DIR/../data/${BASENAME}.txt"
+FIGURE="$DIR/../../gallery/${BASENAME}"
 
 cmd=()
 for what in tan cos sin
@@ -12,7 +12,7 @@ do
   cmd+=( $(columns 'x' "${what}(x)" "$DATA") "${what}" )
 done
 
-gri -p -output ${figure}.ps \
+gri -p -output "${FIGURE}.ps" \
  $GRI/plot \
  line solid \
  colormap green \
@@ -26,4 +26,4 @@ gri -p -output ${figure}.ps \
  linear '$f(x)$' %g -5 5 2 5 1 \
  "${cmd[@]}"
 
-gri_ps2pdf ${figure}.ps
+gri_ps2pdf "${FIGURE}.ps"
