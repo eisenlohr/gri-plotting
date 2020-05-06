@@ -7,10 +7,10 @@ A collection of scripts using the "[Gri](http://gri.sourceforge.net)" engine (de
 
 Distributions are automatically generated from (unsorted) data columns in (multiple) text files.
 
-![](gallery/distributions.pdf)
+[![gallery/distributions](gallery/distributions.png)](gallery/distributions.pdf)
 
 ## `plot.gri`
 
 Arbitrarily styled plots of columnar data collected across multiple input data files.
 
-![](gallery/harmonic_colorpair.pdf)
+[![gallery/harmonic_colorpair](gallery/harmonic_colorpair.png)](gallery/harmonic_colorpair.pdf)
