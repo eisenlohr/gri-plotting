@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
 
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
-SOURCE="$(basename "${BASH_SOURCE[0]}")"
-BASENAME=$([[ $SOURCE =~ plot_(.*)\.sh ]] && echo ${BASH_REMATCH[1]})
-DATA="$DIR/../data/${BASENAME}.txt"
-FIGURE="$DIR/../../gallery/${BASENAME}"
+SCRIPT="$( basename "${BASH_SOURCE[0]}" )"
+BASE=$( [[ $SCRIPT =~ plot_(.*)\.sh ]] && echo ${BASH_REMATCH[1]} )
+DATA="$DIR/../data/${BASE}.txt"
+FIGURE="$DIR/../../gallery/${BASE}"
 
 cmd=()
 for what in tan cos sin
