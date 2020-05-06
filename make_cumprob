@@ -1,7 +1,12 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
-from __future__ import print_function
-import os,sys,re,math,random,numpy as np
+import os
+import sys
+import re
+import math
+
+import numpy as np
+
 try:
     from StringIO import StringIO
 except ImportError:
@@ -35,7 +40,6 @@ parser.add_option('--positive', dest='positive', action='store_true',
 parser.add_option('--negative', dest='negative', action='store_true',
                   help='restrict output to negative (<0) values')
 
-
 parser.set_defaults(column = 1,
                     noise = 0,
                     total = 0,
@@ -47,6 +51,7 @@ parser.set_defaults(column = 1,
                     negative = False,
                     weight = None,
                    )
+
 (options,args) = parser.parse_args()
 
 options.column = max(1,options.column)-1                   # read (sane) index of desired element
@@ -70,7 +75,7 @@ data = filedata[filedata[:,0] != options.skip] if options.skip else filedata
 if options.weight == None:
   data[:,1] = 1
 
-if options.noise > 0 and options.noise <= 10:              # if noise requested 
+if options.noise > 0 and options.noise <= 10:              # if noise requested
   data =  np.repeat(data,options.noise,axis=0)
   np.random.seed()
   noise = min(abs(data[:,0]))*(np.random.rand(len(data))-0.5)    # random scatter by half of minimum value in dataset
@@ -90,7 +95,7 @@ if options.negative:
   data = data[:i]                                          # omit all non-negative values
 
 if options.absolute: data[:,0] = abs(data[:,0])            # restrict to absolute values ?
-  
+
 data = data[::-1 if options.invert else 1]                 # reverse data sorting if requested
 
 if options.noise > 10 and options.noise < len(data):
@@ -100,8 +105,8 @@ if options.noise > 10 and options.noise < len(data):
 else:
   index = range(len(data))
 
-fullScale = max(sum(data[:,1]),options.total) if options.weight != None else max(len(data),options.total)
-F = options.offset if options.normalized else options.offset/fullScale 
+fullScale = max(options.total, (len(data) if options.weight == None else sum(data[:,1])))
+F = options.offset if options.normalized else options.offset/fullScale
 
 formerI = 0
 for i in index:
