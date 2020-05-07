@@ -17,7 +17,7 @@ The `examples/scripts` folder contains a number of fully worked out usage exampl
 
    1. Colored series with a second x axis and data gaps:
      
-   ![](gallery/harmonic_colormap.pdf)
+   [![gallery/harmonic_colormap](gallery/harmonic_colormap.png)](gallery/harmonic_colormap.pdf)
 
    ```
    line solid \
@@ -34,7 +34,7 @@ The `examples/scripts` folder contains a number of fully worked out usage exampl
 
    1. Time series with symbols connected by lines:
      
-   ![](gallery/GlobalLifeExpectancy.pdf)
+   [![gallery/GlobalLifeExpectancy](gallery/GlobalLifeExpectancy.png)](gallery/GlobalLifeExpectancy.pdf)
     
    ```
    line solid \
@@ -52,7 +52,7 @@ The `examples/scripts` folder contains a number of fully worked out usage exampl
 
    1. Comparison of normal (red) and exponential (blue) distributions:
      
-   ![](gallery/distributions.pdf)
+   [![gallery/distributions](gallery/distributions.png)](gallery/distributions.pdf)
     
    ```
    colormap own \
