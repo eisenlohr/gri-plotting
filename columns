@@ -1,5 +1,4 @@
-#!/usr/bin/env python
-from __future__ import print_function
+#!/usr/bin/env python3
 import os,sys,re
 from optparse import OptionParser, OptionGroup, Option, SUPPRESS_HELP
 
@@ -8,7 +7,7 @@ class MyOption(Option):
 # -----------------------------
 # used for definition of new option parser action 'extend', which enables to take multiple option arguments
 # taken from online tutorial http://docs.python.org/library/optparse.html
-  
+
   ACTIONS = Option.ACTIONS + ("extend",)
   STORE_ACTIONS = Option.STORE_ACTIONS + ("extend",)
   TYPED_ACTIONS = Option.TYPED_ACTIONS + ("extend",)
@@ -66,11 +65,9 @@ for line in file['input']:
 
 file['input'].close()
 
-headers = list(map(lambda s:re.sub(r'^["\']|["\']$', '', s), 
+headers = list(map(lambda s:re.sub(r'^["\']|["\']$', '', s),
                    re.findall(r'(?:[^\s,"]|"(?:\\.|[^"])*")+', line)))
 
-
-print('\t'.join(([file['name']] if file['name'] and options.filename else []) +
+print('\t'.join(([f"\"{file['name']}\""] if file['name'] and options.filename else []) +
                 [options.separator.join([str(1+headers.index(heading)) for heading in columns if heading in headers])]
                ))
-
