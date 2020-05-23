@@ -68,6 +68,7 @@ file['input'].close()
 headers = list(map(lambda s:re.sub(r'^["\']|["\']$', '', s),
                    re.findall(r'(?:[^\s,"]|"(?:\\.|[^"])*")+', line)))
 
-print('\t'.join(([f"\"{file['name']}\""] if file['name'] and options.filename else []) +
+print('\t'.join((["{quote}{file}{quote}".format(file=file['name'],
+                                                quote="'" if ' ' in file['name'] else '')] if file['name'] and options.filename else []) +
                 [options.separator.join([str(1+headers.index(heading)) for heading in columns if heading in headers])]
                ))
