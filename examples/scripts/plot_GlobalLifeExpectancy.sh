@@ -17,6 +17,6 @@ gri -p -output "${FIGURE}.ps" \
  frame inch 2 \
  linear 'year' %g 1750 2050 6 5 1 \
  log 'life expectancy / a' %g 10 100 2 1 1 \
- $(columns 'Year' 'LifeExpectancy/a' "$DATA") world \
+ "$DATA" Year LifeExpectancy/a world \
 
 gri_ps2pdf "${FIGURE}.ps"

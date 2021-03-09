@@ -1,15 +1,15 @@
 #!/usr/bin/env bash
 
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
-SCRIPT="$( basename "${BASH_SOURCE[0]}" )"
-BASE=$( [[ $SCRIPT =~ plot_(.*)\.sh ]] && echo ${BASH_REMATCH[1]} )
-DATA="$DIR/../data/${BASE}.txt"
-FIGURE="$DIR/../../gallery/${BASE}"
+NAME="$(basename "${BASH_SOURCE[0]%.*}")"
+me=${NAME#plot_}
+DATA="$DIR/../data/${me%_*}.txt"
+FIGURE="$DIR/../../gallery/${me}"
 
 cmd=()
 for what in tan cos sin
 do
-  cmd+=( $(columns 'x' "${what}(x)" "$DATA") "${what}" )
+  cmd+=( "$DATA" 'x' "${what}(x)" "${what}" )
 done
 
 gri -p -output "${FIGURE}.ps" \

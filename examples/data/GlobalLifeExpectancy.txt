@@ -1,4 +1,3 @@
-2 header
 # data from https://ourworldindata.org/life-expectancy#life-expectancy-has-improved-globally
 Year LifeExpectancy/a
 1770 28.7

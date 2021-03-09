@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import os
+import sys
 import argparse
 import numpy as np
 import pandas as pd
@@ -37,10 +38,12 @@ else:
 
 data = np.hstack((pd.read_csv(StringIO(content),
                               sep='\s+',
+                              comment='#',
                               usecols=[args.x],
                              ).to_numpy().astype(float),
                   pd.read_csv(StringIO(content),
                               sep='\s+',
+                              comment='#',
                               usecols=[args.y],
                              ).to_numpy().astype(float)))
 

@@ -9,10 +9,9 @@ FIGURE="$DIR/../../gallery/${BASE}"
 cmd=()
 for what in 3 2 1
 do
-  cmd+=( $(columns "normal@${what}" "$DATA") "${what}" red )
-  cmd+=( $(columns "exponential@${what}" "$DATA") "${what}" blue )
+  cmd+=( "$DATA" "normal@${what}"      "${what}" red )
+  cmd+=( "$DATA" "exponential@${what}" "${what}" blue )
 done
-
 
 gri -p -output "${FIGURE}.ps" \
  $GRI/plot_distribution \

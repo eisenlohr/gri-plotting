@@ -44,7 +44,7 @@ parser.add_argument('file',
 args = parser.parse_args()
 
 args.column = int(args.column)-1 if args.column.isdigit() else args.column
-args.weight = int(args.weight)-1 if args.weight.isdigit() else args.weight
+args.weight = int(args.weight)-1 if args.weight is not None and args.weight.isdigit() else args.weight
 
 if os.path.exists(args.file):
     with open(args.file) as f:
@@ -54,11 +54,13 @@ else:
 
 values  = pd.read_csv(StringIO(content),
                       sep='\s+',
+                      comment='#',
                       usecols=[args.column],
                      ).to_numpy().astype(float)
 weights = np.ones_like(values) if args.weight is None else \
           pd.read_csv(StringIO(content),
                       sep='\s+',
+                      comment='#',
                       usecols=[args.weight],
                      ).to_numpy().astype(float)
 
