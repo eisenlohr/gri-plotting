@@ -21,31 +21,21 @@ By default, the original x-value will be positioned in the middle of the step.
 
 parser.add_argument('-x', help='x column label')
 parser.add_argument('-y', help='y column label')
-parser.add_arguments('-p', '--position', choices=('center','left','right'), default='center',
+parser.add_argument('-p', '--position', choices=('center','left','right'), default='center',
 					help = 'position of the original data point: middle, start, end [default="%default"]')
-parser.add_argument('file', help='name of data file')
+parser.add_argument('file', help='name of data file', nargs='?', default=None)
 
 args = parser.parse_args()
 
 args.x = int(args.x)-1 if args.x.isdigit() else args.x
 args.y = int(args.y)-1 if args.y.isdigit() else args.y
+cols = np.array([args.x,args.y])
 
-if os.path.exists(args.file):
-    with open(args.file) as f:
-        content = f.read()                                     # parse the given file
-else:
-    content = sys.stdin.read()                                 # or default to stdin
-
-data = np.hstack((pd.read_csv(StringIO(content),
-                              sep='\s+',
-                              comment='#',
-                              usecols=[args.x],
-                             ).to_numpy().astype(float),
-                  pd.read_csv(StringIO(content),
-                              sep='\s+',
-                              comment='#',
-                              usecols=[args.y],
-                             ).to_numpy().astype(float)))
+df = pd.read_csv(sys.stdin if args.file is None else args.file,
+                 sep='\s+',
+                 comment='#',
+                )
+data = df[df.columns[cols] if cols.dtype==int else cols].to_numpy().astype(float)
 
 stepdata = []																# create step data
 if options.position == 'left':
