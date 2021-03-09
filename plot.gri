@@ -589,11 +589,7 @@ end if
 # ----- gap -----
 
 get_number "gap" &.arg. &.gap. "\.missingvalue."
-if {rpn .gap. -1 < .gap. 100 > and} # prevent for optional value indicating a gap in data
-  show "dangerous gap value: " .gap.
-else
-  set missing value .gap.
-end if
+set missing value .gap.
 
 # ----- back -----
 
@@ -854,8 +850,8 @@ while {rpn .nFiles. .i. <}
  # ------------ read arguments for this data set -------------
 
  \filename = {rpn 1 .arg. + argv}
- .xcol.    = {rpn 2 .arg. + argv atof}
- .ycol.    = {rpn 3 .arg. + argv atof}
+ \xcol     = {rpn 2 .arg. + argv}
+ \ycol     = {rpn 3 .arg. + argv}
  .arg. += 3
 
  if .curvelabel.
@@ -891,7 +887,7 @@ while {rpn .nFiles. .i. <}
    \color  =  {rpn .arg. argv}
  else if .colorByData.
    .arg. += 1
-   .zcol.  =  {rpn .arg. argv atof}
+   \zcol  =  {rpn .arg. argv}
    if .ownZhue.
      .arg. += 1
      .zhue. =  {rpn .arg. argv atof}
@@ -982,9 +978,9 @@ while {rpn .nFiles. .i. <}
  # ------------- draw stepped line --------------
 
  if .steps.
-  sprintf \xcol "%.0f" .xcol.
-  sprintf \ycol "%.0f" .ycol.
-  open "make_stepfunction \"\filename\" -p \"\position\" \"\xcol\" \"\ycol\" |"
+#  sprintf \xcol "%.0f" .xcol.
+#  sprintf \ycol "%.0f" .ycol.
+  open "make_stepfunction \"\filename\" -p \"\position\" -x \"\xcol\" -y \"\ycol\" |"
   read columns x y
 
   x *= .xscale.
@@ -1004,21 +1000,13 @@ while {rpn .nFiles. .i. <}
   draw curve
  end if
 
- open "\filename"
-
 
  # ----------- draw line -----------
 
  if {rpn .line. "none" "\line" == ! &}
-  rewind
-  read .skip. \heading
-  if {rpn 0 4 "\heading" substr "head" ==}
-    skip .skip.
-  else
-    rewind
-  end if
 
-  read columns x=.xcol. y=.ycol.
+  open "make_function \"\filename\" -x \"\xcol\" -y \"\ycol\" |"
+  read columns x y
 
   x *= .xscale.
   y *= .yscale.
@@ -1051,18 +1039,12 @@ while {rpn .nFiles. .i. <}
  # ----------------- draw marked points ---------------
 
  if .marker.
-  rewind
-  read .skip. \heading
-  if {rpn 0 4 "\heading" substr "head" ==}
-    skip .skip.
-  else
-    rewind
-  end if
-
   if .colorByData.
-    read columns x=.xcol. y=.ycol. z=.zcol.
+    open "make_function \"\filename\" -x \"\xcol\" -y \"\ycol\" -z \"\zcol\" |"
+    read columns x y z
   else
-    read columns x=.xcol. y=.ycol.
+    open "make_function \"\filename\" -x \"\xcol\" -y \"\ycol\" |"
+    read columns x y
   end if
 
   x *= .xscale.

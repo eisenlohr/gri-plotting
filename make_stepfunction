@@ -1,13 +1,16 @@
 #!/usr/bin/env python3
 
 import os
-import sys
-import re
+import argparse
+import numpy as np
+import pandas as pd
 
-from optparse import OptionParser
+try:
+    from StringIO import StringIO
+except ImportError:
+    from io import StringIO
 
-
-parser = OptionParser(usage='%prog [options] filename xcolumn ycolumn', description = """
+parser = argparse.ArgumentParser(description = """
 Converts point data for plotting it as step function.
 
 Gets a list of data and two column indices for the x- and y-column respectively.
@@ -15,28 +18,31 @@ Returns a list of (x,y) pairs that describe a step function of the original data
 By default, the original x-value will be positioned in the middle of the step.
 """)
 
-parser.add_option('-p', '--position', dest='position', choices=('center','left','right'), \
+parser.add_argument('-x', help='x column label')
+parser.add_argument('-y', help='y column label')
+parser.add_arguments('-p', '--position', choices=('center','left','right'), default='center',
 					help = 'position of the original data point: middle, start, end [default="%default"]')
-parser.set_defaults(position = 'center')
+parser.add_argument('file', help='name of data file')
 
-(options, args) = parser.parse_args()
+args = parser.parse_args()
 
-if len(args) == 3:														    # parsing of input arguments
-	filename = args[0]
-	xcolumn = int(args[1])-1
-	ycolumn = int(args[2])-1
+args.x = int(args.x)-1 if args.x.isdigit() else args.x
+args.y = int(args.y)-1 if args.y.isdigit() else args.y
+
+if os.path.exists(args.file):
+    with open(args.file) as f:
+        content = f.read()                                     # parse the given file
 else:
-	parser.error('need exactly three arguments = filename xcolumn ycolumn...')
+    content = sys.stdin.read()                                 # or default to stdin
 
-with file as open(filename):												# open and read given file
-	content = file.readlines()
-
-start = 0																	# skip header if present
-m = re.match('(\d+)\s+head',content[0],re.I)
-if m:
-	start = 1+int(m.group(1))
-
-data = [[float(line.split()[c]) for c in [xcolumn, ycolumn]] for line in content[start:]]	# store x-y data
+data = np.hstack((pd.read_csv(StringIO(content),
+                              sep='\s+',
+                              usecols=[args.x],
+                             ).to_numpy().astype(float),
+                  pd.read_csv(StringIO(content),
+                              sep='\s+',
+                              usecols=[args.y],
+                             ).to_numpy().astype(float)))
 
 stepdata = []																# create step data
 if options.position == 'left':
@@ -59,4 +65,4 @@ elif options.position == 'center':
 	stepdata.append([1.5*data[-1][0]-0.5*data[-2][0], data[-1][1]])
 
 for item in stepdata:														# output data to stdout
-	print('%g\t%g'%(item[0],item[1]))
+	print(f'{item[0]}\t{item[1]}')
