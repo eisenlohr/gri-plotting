@@ -41,7 +41,7 @@ The `examples/scripts` folder contains a number of fully worked out usage exampl
    linewidth 0.5 \
    symbol dot \
    color 'rgb 0.45 0.10 0.45' \
-   label outside \a
+   label outside \
    aspect 0.5 \
    frame inch 2 \
    linear 'year' %g 1750 2050 6 5 1 \
