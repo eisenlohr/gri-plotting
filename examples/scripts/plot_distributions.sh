@@ -3,7 +3,7 @@
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
 SCRIPT="$( basename "${BASH_SOURCE[0]}" )"
 BASE=$( [[ $SCRIPT =~ plot_(.*)\.sh ]] && echo ${BASH_REMATCH[1]} )
-DATA="$DIR/../data/${BASE}.txt"
+DATA="$DIR/../data/${BASE}.txt.bz2"
 FIGURE="$DIR/../../gallery/${BASE}"
 
 cmd=()
