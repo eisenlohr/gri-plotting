@@ -585,7 +585,7 @@ else
  show "       [ 'label' ]                  --> label each curve"
  show "       [ 'noaxes' | 'noxaxis' | 'noyaxis' ]"
  show "       [ 'secondx' & "
- show "         x2.type  x2.label x2.format x2.start x2.end x2.Nincs x2.Nsubincs ]"
+ show "         x2.type x2.label x2.format x2.start x2.end x2.Nincs x2.Nsubincs ]"
  show "       [ 'ylabel' string ]          --> label of cumulative probability"
  show "       [ 'clip' ]                   --> restrict data to within frame"
  show "       [ 'tight' ]                  --> minimum margin around frame"
