@@ -11,9 +11,10 @@ gri -p -output ${FIGURE}.ps \
  line own \
  symbol own \
  color own \
- label \
+ label initial \
+ secondx linear '$x$' %g 0 $(echo '2*3.1415926' | bc -l) 1 0 \
  frame inch 2 \
- linear '$x / \pi$' %g 0 2 2 5 $(echo '1/3.1415926' | bc -l) \
+ linear '$x / \pi$' %g 0 2 2 6 $(echo '1/3.1415926' | bc -l) \
  linear '$f(x)$' %g -1 1 2 5 1 \
  "$DATA" 'x' 'sin(x)' sin solid none red \
  "$DATA" 'x' 'cos(x)' cos none dot blue \
