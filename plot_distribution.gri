@@ -713,7 +713,10 @@ end if
 
 the_datalayout
 
+# ++++++++++++++++++++++++++++++++
 # +++++ loop over input data +++++
+# +++++ to establish coloring ++++
+# ++++++++++++++++++++++++++++++++
 
 .datastart. = .arg.
 
@@ -761,10 +764,9 @@ if .owncolormap.
 end if
 
 
-# +++++ loop over distributions +++++
-
 # ++++++++++++++++++++++++++++++++
 # +++++ loop over input data +++++
+# +++++        to plot       +++++
 # ++++++++++++++++++++++++++++++++
 
 .i. = 0
@@ -960,5 +962,5 @@ if .axislabelx.
   draw label "\xlabel"  centered at {rpn .leftmargin. .diagramsize. 2 / +} {rpn "\xlabel" descent .labelfont. 3 / pttocm +} cm
 end if
 if .axislabely.
-  draw label "\ylabel"  centered at {rpn "\ylabel" ascent .labelfont. 3 / pttocm +}                                                  {rpn .bottommargin. .aspect. .diagramsize. * 2 / +} cm rotated 90
+  draw label "\ylabel"  centered at {rpn "\ylabel" ascent .labelfont. 3 / pttocm +} {rpn .bottommargin. .aspect. .diagramsize. * 2 / +} cm rotated 90
 end if
