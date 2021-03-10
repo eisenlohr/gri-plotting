@@ -12,7 +12,7 @@ gri -p -output ${FIGURE}.ps \
  symbol own \
  color own \
  label initial \
- secondx linear '$x$' %g 0 $(echo '2*3.1415926' | bc -l) 1 0 \
+ secondx linear '$x$ / degree' %g 0 360 6 6 \
  frame inch 2 \
  linear '$x / \pi$' %g 0 2 2 6 $(echo '1/3.1415926' | bc -l) \
  linear '$f(x)$' %g -1 1 2 5 1 \
