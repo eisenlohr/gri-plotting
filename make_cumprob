@@ -54,7 +54,7 @@ data = df[df.columns[cols] if cols.dtype==int else cols].to_numpy().astype(float
 data = data[data[:,0].flatten() != args.skip,:] if args.skip else data
 data[:,1] = 1 if args.weight is None else data[:,1]
 
-if args.noise > 0 and args.noise <= 10:              # if noise requested
+if args.noise > 0 and args.noise <= 10:                    # if noise requested
   data = np.repeat(data,args.noise,axis=0)
   data[:,0] += min(abs(data[:,0]))*(rng.random(len(data))-0.5)    # random scatter by half of minimum value in dataset
 
@@ -70,22 +70,21 @@ if args.negative:
         if data[i,0] >= 0.0: break                         # first non-negative value in sorted list
     data = data[:i]                                        # omit all non-negative values
 
-if args.absolute: data[:,0] = abs(data[:,0])            # restrict to absolute values ?
+if args.absolute: data[:,0] = abs(data[:,0])               # restrict to absolute values ?
 
-data = data[::-1 if args.invert else 1]                 # reverse data sorting if requested
+data = data[::-1 if args.invert else 1]                    # reverse data sorting if requested
 
-index = range(int(math.floor((len(data)-1)/args.noise/2)),
-              len(data),
-              int(math.floor((len(data)-1)/args.noise))) \
-        if args.noise > 10 and args.noise < len(data) else \
-        range(len(data))
+index = list(range(int(math.floor((len(data)-1)/args.noise/2)),
+                   len(data),
+                   int(math.floor((len(data)-1)/args.noise)))
+             if args.noise > 10 and args.noise < len(data) else
+             range(len(data))
+            )
 
 fullScale = max(args.total, (len(data) if args.weight is None else sum(data[:,1])))
 F = args.offset if args.normalized else args.offset/fullScale
 
-formerI = 0
-for i in index:
-  dF = sum(data[formerI:i+1,1])/fullScale
-  print("%e\t%g\n%e\t%g"%(data[i,0],F,data[i,0],F+dF))
+for a,b in zip([-1]+index[:-1],index):
+  dF = sum(data[a+1:b+1,1])/fullScale
+  print("%e\t%g\n%e\t%g"%(data[b,0],F,data[b,0],F+dF))
   F += dF
-  formerI = i+1
