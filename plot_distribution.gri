@@ -23,6 +23,7 @@ new \
   .secondx. \
   \ylabel \
   .aspect. \
+  .transpose. \
   .frame. .inch. \
   .arg. .datastart. \
   .nGray. .nRed. .nOrange. .nYellow. .nGreen. .nCyan. .nBlue. .nPurple. .nMagenta. \
@@ -30,6 +31,7 @@ new \
   .iHSB. .nHSB. \
   .hue. .saturation. .brightness.
 
+.transpose. = 0
 .total. = 0
 
 .ownline. = 0
@@ -198,21 +200,44 @@ new \
     .topmargin.     = 0.4
   end if
 
-  if .axislabelx.
-    .leftmargin.   = {rpn "\xtickmin" width 2 / .leftmargin. sup}
-    .rightmargin.  = {rpn "\xtickmax" width 2 / .rightmargin. sup}
-    .bottommargin. = {rpn "\xlabel" ascent "\xlabel" descent + 3 * .bottommargin. sup}
-  end if
-  if .secondx.
-    .leftmargin.   = {rpn "\x2tickmin" width 2 / .leftmargin. sup}
-    .rightmargin.  = {rpn "\x2tickmax" width 2 / .rightmargin. sup}
-    .topmargin.    = {rpn "\x2label" ascent "\x2label" descent + 3 * .topmargin. sup}
-  end if
+  if .transpose.
 
-  if .axislabely.
-    .leftmargin.   = {rpn "\ytickmin " width "\ytickmax " width sup "\ylabel" ascent "\ylabel" descent + 2 * + .leftmargin. sup}
-    .bottommargin. = {rpn "\ytickmin" ascent "\ytickmin" descent + .bottommargin. sup}
-    .topmargin.    = {rpn "\ytickmax" ascent "\ytickmax" descent + .topmargin. sup}
+    if .axislabelx.
+      .leftmargin.   = {rpn "\xtickmin" width "\xtickmax" width sup "\xlabel" ascent "\xlabel" descent + 2 * + .leftmargin. sup}
+      .bottommargin. = {rpn "\xtickmin" ascent "\xtickmin" descent + .bottommargin. sup}
+      .topmargin.    = {rpn "\xtickmax" ascent "\xtickmax" descent + .topmargin. sup}
+    end if
+    if .secondx.
+      .rightmargin.  = {rpn "\x2tickmin" width "\x2tickmax" width sup "\x2label" ascent "\x2label" descent + 2 * + .rightmargin. sup}
+      .bottommargin. = {rpn "\x2tickmin" ascent "\x2tickmin" descent + .bottommargin. sup}
+      .topmargin.    = {rpn "\x2tickmax" ascent "\x2tickmax" descent + .topmargin. sup}
+    end if
+
+    if .axislabely.
+      .leftmargin.   = {rpn "\ytickmin" width 2 / .leftmargin. sup}
+      .rightmargin.  = {rpn "\ytickmax" width 2 / .rightmargin. sup}
+      .bottommargin. = {rpn "\ylabel" ascent "\ylabel" descent + 3 * .bottommargin. sup}
+    end if
+
+  else
+
+    if .axislabelx.
+      .leftmargin.   = {rpn "\xtickmin" width 2 / .leftmargin. sup}
+      .rightmargin.  = {rpn "\xtickmax" width 2 / .rightmargin. sup}
+      .bottommargin. = {rpn "\xlabel" ascent "\xlabel" descent + 3 * .bottommargin. sup}
+    end if
+    if .secondx.
+      .leftmargin.   = {rpn "\x2tickmin" width 2 / .leftmargin. sup}
+      .rightmargin.  = {rpn "\x2tickmax" width 2 / .rightmargin. sup}
+      .topmargin.    = {rpn "\x2label" ascent "\x2label" descent + 3 * .topmargin. sup}
+    end if
+
+    if .axislabely.
+      .leftmargin.   = {rpn "\ytickmin " width "\ytickmax " width sup "\ylabel" ascent "\ylabel" descent + 2 * + .leftmargin. sup}
+      .bottommargin. = {rpn "\ytickmin" ascent "\ytickmin" descent + .bottommargin. sup}
+      .topmargin.    = {rpn "\ytickmax" ascent "\ytickmax" descent + .topmargin. sup}
+    end if
+
   end if
 
   if .frame.
@@ -267,67 +292,135 @@ new \
 
   set clip postscript off
 
+  if .transpose.
 
-  delete y scale
-  if .axislabely.
-    set y format "\yformat"
-  else
-    set y format off
-  end if
-  set y type \ytype
-  if {rpn "log" "\ytype" ==}
-    if {rpn .ystart. .yend. >}
-      set y axis .ystart. .yend. .ybiginc. .ysmlinc.
-    else
-      set y axis .ystart. .yend.
-    end if
-  else
-    set y axis .ystart. .yend. .ybiginc. .ysmlinc. labeling .ystart.
-  end if
-
-  draw y axis at left
-
-  set y format off
-  draw y axis at right
-
-  if .secondx.
     delete x scale
-    set x format "\x2format"
-    set x type \x2type
-    if {rpn "log" "\x2type" ==}
-      if {rpn .x2start. .x2end. >}
-        set x axis .x2start. .x2end. .x2biginc. .x2smlinc.
+    if .axislabely.
+      set x format "\yformat"
+    else
+      set x format off
+    end if
+    set x type \ytype
+    if {rpn "log" "\ytype" ==}
+      if {rpn .ystart. .yend. >}
+        set x axis .ystart. .yend. .ybiginc. .ysmlinc.
       else
-        set x axis .x2start. .x2end.
+        set x axis .ystart. .yend.
       end if
     else
-      set x axis .x2start. .x2end. .x2biginc. .x2smlinc. labeling .x2start.
+      set x axis .ystart. .yend. .ybiginc. .ysmlinc. labeling .ystart.
     end if
-    draw x axis at top
-  end if
 
-  delete x scale
-  if .axislabelx.
-    set x format "\xformat"
-  else
+    draw x axis at bottom
+
     set x format off
-  end if
-  set x type \xtype
-  if {rpn "log" "\xtype" ==}
-    if {rpn .xstart. .xend. >}
-      set x axis .xstart. .xend. .xbiginc. .xsmlinc.
+    draw x axis at top
+
+    if .secondx.
+      delete y scale
+      set y format "\x2format"
+      set y type \x2type
+      if {rpn "log" "\x2type" ==}
+        if {rpn .x2start. .x2end. >}
+          set y axis .x2start. .x2end. .x2biginc. .x2smlinc.
+        else
+          set y axis .x2start. .x2end.
+        end if
+      else
+        set y axis .x2start. .x2end. .x2biginc. .x2smlinc. labeling .x2start.
+      end if
+      draw y axis at right
+    end if
+
+    delete y scale
+    if .axislabelx.
+      set y format "\xformat"
     else
-      set x axis .xstart. .xend.
+      set y format off
     end if
+    set y type \xtype
+    if {rpn "log" "\xtype" ==}
+      if {rpn .xstart. .xend. >}
+        set y axis .xstart. .xend. .xbiginc. .xsmlinc.
+      else
+        set y axis .xstart. .xend.
+      end if
+    else
+      set y axis .xstart. .xend. .xbiginc. .xsmlinc. labeling .xstart.
+    end if
+
+    draw y axis at left
+
+    if {rpn .secondx. not}
+      set y format off
+      draw y axis at right
+    end if
+
   else
-    set x axis .xstart. .xend. .xbiginc. .xsmlinc. labeling .xstart.
-  end if
 
-  draw x axis at bottom
+    delete y scale
+    if .axislabely.
+      set y format "\yformat"
+    else
+      set y format off
+    end if
+    set y type \ytype
+    if {rpn "log" "\ytype" ==}
+      if {rpn .ystart. .yend. >}
+        set y axis .ystart. .yend. .ybiginc. .ysmlinc.
+      else
+        set y axis .ystart. .yend.
+      end if
+    else
+      set y axis .ystart. .yend. .ybiginc. .ysmlinc. labeling .ystart.
+    end if
 
-  if {rpn .secondx. not}
-    set x format off
-    draw x axis at top
+    draw y axis at left
+
+    set y format off
+    draw y axis at right
+
+    if .secondx.
+      delete x scale
+      set x format "\x2format"
+      set x type \x2type
+      if {rpn "log" "\x2type" ==}
+        if {rpn .x2start. .x2end. >}
+          set x axis .x2start. .x2end. .x2biginc. .x2smlinc.
+        else
+          set x axis .x2start. .x2end.
+        end if
+      else
+        set x axis .x2start. .x2end. .x2biginc. .x2smlinc. labeling .x2start.
+      end if
+      draw x axis at top
+    end if
+
+    delete x scale
+    if .axislabelx.
+      set x format "\xformat"
+    else
+      set x format off
+    end if
+    set x type \xtype
+    if {rpn "log" "\xtype" ==}
+      if {rpn .xstart. .xend. >}
+        set x axis .xstart. .xend. .xbiginc. .xsmlinc.
+      else
+        set x axis .xstart. .xend.
+      end if
+    else
+      set x axis .xstart. .xend. .xbiginc. .xsmlinc. labeling .xstart.
+    end if
+
+    draw x axis at bottom
+
+    if {rpn .secondx. not}
+      set x format off
+      draw x axis at top
+    end if
+
+
   end if
 
 }
@@ -337,29 +430,60 @@ new \
 {
   set font size .tickfont.
 
-  delete x scale
-  set x type \xtype
-  if {rpn "log" "\xtype" ==}
-    if {rpn .xstart. .xend. >}
-      set x axis .xstart. .xend. .xbiginc. .xsmlinc.
+  if .transpose.
+
+    delete y scale
+    set y type \xtype
+    if {rpn "log" "\xtype" ==}
+      if {rpn .xstart. .xend. >}
+        set y axis .xstart. .xend. .xbiginc. .xsmlinc.
+      else
+        set y axis .xstart. .xend.
+      end if
     else
-      set x axis .xstart. .xend.
+      set y axis .xstart. .xend. .xbiginc. .xsmlinc. labeling .xstart.
     end if
+
+    delete x scale
+    set x type \ytype
+    if {rpn "log" "\ytype" ==}
+      if {rpn .ystart. .yend. >}
+        set x axis .ystart. .yend. .ybiginc. .ysmlinc.
+      else
+        set x axis .ystart. .yend.
+      end if
+    else
+      set x axis .ystart. .yend. .ybiginc. .ysmlinc. labeling .ystart.
+    end if
+
   else
-    set x axis .xstart. .xend. .xbiginc. .xsmlinc. labeling .xstart.
+
+    delete x scale
+    set x type \xtype
+    if {rpn "log" "\xtype" ==}
+      if {rpn .xstart. .xend. >}
+        set x axis .xstart. .xend. .xbiginc. .xsmlinc.
+      else
+        set x axis .xstart. .xend.
+      end if
+    else
+      set x axis .xstart. .xend. .xbiginc. .xsmlinc. labeling .xstart.
+    end if
+
+    delete y scale
+    set y type \ytype
+    if {rpn "log" "\ytype" ==}
+      if {rpn .ystart. .yend. >}
+        set y axis .ystart. .yend. .ybiginc. .ysmlinc.
+      else
+        set y axis .ystart. .yend.
+      end if
+    else
+      set y axis .ystart. .yend. .ybiginc. .ysmlinc. labeling .ystart.
+    end if
+
   end if
 
-  delete y scale
-  set y type \ytype
-  if {rpn "log" "\ytype" ==}
-    if {rpn .ystart. .yend. >}
-      set y axis .ystart. .yend. .ybiginc. .ysmlinc.
-    else
-      set y axis .ystart. .yend.
-    end if
-  else
-    set y axis .ystart. .yend. .ybiginc. .ysmlinc. labeling .ystart.
-  end if
 }
 
 #-------------------------------------------------------------------------
@@ -537,7 +661,6 @@ end if
 
 get_string "ylabel" &.arg. &\ylabel "cumulative probability"
 
-
 # ----- clip -----
 
 get_logical "clip"    &.arg. &.clip.    0
@@ -549,6 +672,10 @@ get_logical "tight"    &.arg. &.tight.    0
 # ----- aspect -----
 
 get_number  "aspect"  &.arg. &.aspect.  1.0
+
+# ----- transpose -----
+
+get_logical "transpose"   &.arg. &.transpose.    0
 
 # ----- frame -----
 
@@ -589,6 +716,7 @@ else
  show "       [ 'ylabel' string ]          --> label of cumulative probability"
  show "       [ 'clip' ]                   --> restrict data to within frame"
  show "       [ 'tight' ]                  --> minimum margin around frame"
+ show "       [ 'transpose' ]              --> transpose diagram"
  show "       [ 'aspect' y/x-ratio ]       --> frame aspect ratio"
  show "       ['frame'] ['inch'] size      --> diagram (frame) size in cm (or inch)"
  show "       x.type x.label x.format      --> ('linear' | 'log') theLabel %g"
@@ -914,9 +1042,13 @@ while {rpn .nFiles. .i. <}
  # ------------  draw distribution --------------
 
  if {rpn "none" "\line" == !}
-  read columns x y
-
-  x *= .xscale.
+  if .transpose.
+    read columns y x
+    y *= .xscale.
+  else
+    read columns x y
+    x *= .xscale.
+  end if
 
   if {rpn "solid" "\line" ==}
     set dash off
@@ -955,12 +1087,28 @@ end if
 set font size .labelfont.
 set color black
 
-if .secondx.
-  draw label "\x2label" centered at {rpn .leftmargin. .diagramsize. 2 / +} {rpn .bottommargin. .topmargin. + .aspect. .diagramsize. * + "\x2label" ascent .labelfont. 3 / pttocm + -} cm
-end if
-if .axislabelx.
-  draw label "\xlabel"  centered at {rpn .leftmargin. .diagramsize. 2 / +} {rpn "\xlabel" descent .labelfont. 3 / pttocm +} cm
-end if
-if .axislabely.
-  draw label "\ylabel"  centered at {rpn "\ylabel" ascent .labelfont. 3 / pttocm +} {rpn .bottommargin. .aspect. .diagramsize. * 2 / +} cm rotated 90
+if .transpose.
+
+  if .secondx.
+    draw label "\x2label" centered at {rpn .leftmargin. .rightmargin. + .diagramsize. + "\x2label" descent .labelfont. 3 / pttocm + -} {rpn .bottommargin. .aspect. .diagramsize. * 2 / +} cm rotated 90
+  end if
+  if .axislabelx.
+    draw label "\xlabel"  centered at {rpn "\xlabel" ascent .labelfont. 3 / pttocm +} {rpn .bottommargin. .aspect. .diagramsize. * 2 / +} cm rotated 90
+  end if
+  if .axislabely.
+    draw label "\ylabel"  centered at {rpn .leftmargin. .diagramsize. 2 / +} {rpn "\ylabel" descent .labelfont. 3 / pttocm +} cm
+  end if
+
+else
+
+  if .secondx.
+    draw label "\x2label" centered at {rpn .leftmargin. .diagramsize. 2 / +} {rpn .bottommargin. .topmargin. + .aspect. .diagramsize. * + "\x2label" ascent .labelfont. 3 / pttocm + -} cm
+  end if
+  if .axislabelx.
+    draw label "\xlabel"  centered at {rpn .leftmargin. .diagramsize. 2 / +} {rpn "\xlabel" descent .labelfont. 3 / pttocm +} cm
+  end if
+  if .axislabely.
+    draw label "\ylabel"  centered at {rpn "\ylabel" ascent .labelfont. 3 / pttocm +} {rpn .bottommargin. .aspect. .diagramsize. * 2 / +} cm rotated 90
+  end if
+
 end if
