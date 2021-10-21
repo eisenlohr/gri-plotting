@@ -669,13 +669,13 @@ get_logical "clip"    &.arg. &.clip.    0
 
 get_logical "tight"    &.arg. &.tight.    0
 
+# ----- transpose -----
+
+get_logical "transpose"   &.arg. &.transpose.   0
+
 # ----- aspect -----
 
 get_number  "aspect"  &.arg. &.aspect.  1.0
-
-# ----- transpose -----
-
-get_logical "transpose"   &.arg. &.transpose.    0
 
 # ----- frame -----
 
