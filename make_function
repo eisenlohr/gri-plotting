@@ -12,7 +12,7 @@ except ImportError:
     from io import StringIO
 
 parser = argparse.ArgumentParser(description = """
-Extract two columns of point data for plotting.
+Extract two (or three) columns of point data for plotting.
 """)
 
 parser.add_argument('-x', help='x column label')
