@@ -1,64 +1,67 @@
-#!/usr/bin/env python
-from __future__ import print_function
-import os,sys,re,subprocess
-from optparse import OptionParser
+#!/usr/bin/env python3
 
-parser = OptionParser(usage='%prog [options] postscriptfile[s]')
-parser.add_option('-k','--keep', action='store_true', dest='keep', \
-			      help='keep both postscript versions of original [%default]')
-parser.add_option('-e','--keepeps', action='store_true', dest='keepeps', \
-			      help='keep encapsulated postscript versions of original [%default]')
-parser.add_option('-p','--keepps', action='store_true', dest='keepps', \
-			      help='keep original postscript version [%default]')
-parser.set_defaults(keep    = False)
-parser.set_defaults(keepeps = False)
-parser.set_defaults(keepps  = False)
+import os
+import sys
+import re
+import argparse
+import subprocess
 
-(options, inNames) = parser.parse_args()
+from pathlib import Path
 
-if not inNames:
-  parser.error('no file specified...')
+parser = argparse.ArgumentParser(description="Convert a gri output file from PS to PDF.")
+parser.add_argument('-k','--keep', action='store_true',
+			        help='keep both postscript versions of original')
+parser.add_argument('-e','--keepeps', action='store_true',
+			      help='keep encapsulated postscript versions of original')
+parser.add_argument('-p','--keepps', action='store_true',
+			        help='keep original postscript version')
+parser.add_argument('file',nargs='+',
+                    help='postscript file(s) to convert')
 
-for inName in inNames:
-  if os.path.lexists(inName):
-    outName = os.path.splitext(inName)[0] + '.eps'
-    dict = {}
-    with open(inName) as inFile:
+args = parser.parse_args()
+
+head  = re.compile(r'^\%\%(\w*):\s+(.*)$')
+atend = re.compile(r'^\%\%(\w*):\s+\(atend\)$')
+tmplt = re.compile(r'^\%\%TemplateBox:.*?$')
+
+for file in map(Path,args.file):
+  if file.exists():
+    print('\x1b[2m'+str(file.parent)+'/'+'\x1b[0m'+str(file.name))
+    epsFile = file.with_suffix('.eps')
+    pdfFile = file.with_suffix('.pdf')
+    with open(file) as inFile:
       input = inFile.readlines()
 
-    head,tail = os.path.split(inName)
-    print('\x1b[2m'+head+'/'+'\x1b[0m'+tail)
-
+    d = dict()
     while input[-1].strip() != '%%Trailer':
       line = input.pop().strip()
-      m = re.search(r'^\%\%(\w*):\s+(.*)$', line)
-      if (m != None):
-        dict[m.group(1)] = m.group(2)
+      m = head.search(line)
+      if m is not None:
+        d[m.group(1)] = m.group(2)
 
-    if os.path.lexists(outName):
-      os.remove(outName)
-    with open(outName,'w') as outFile:
+    if epsFile.exists():
+      os.remove(epsFile)
+    with open(epsFile,'w') as outFile:
       for line in input:
         line = line.strip()
-        m = re.search(r'^\%\%(\w*):\s+\(atend\)$', line)
-        if (m != None):
-          line = '%%%%%s: %s'%(m.group(1),dict[m.group(1)])
-        elif re.search(r'^\%\%TemplateBox:.*?$', line) != None:
-          line = '%%%%TemplateBox: %s'%dict['BoundingBox']
-        outFile.write('%s\n'%line)
+        m = atend.search(line)
+        if m is not None:
+          line = f'%%{m.group(1)}: {d[m.group(1)]}'
+        elif tmplt.search(line) is not None:
+          line = f'%%TemplateBox: {d["BoundingBox"]}'
+        outFile.write(line+'\n')
 
     try:
-      subprocess.call(["epstopdf",outName])
+      subprocess.call(["epstopdf",epsFile])
     except:
       try:
-        subprocess.call(["pstopdf",outName])
-        print("use 'pstopdf' instead of 'epstopdf'")
+        subprocess.call(["pstopdf",epsFile])
+        print("using 'pstopdf' instead of 'epstopdf'")
       except:
-        subprocess.call(["ps2pdf","-dEPSCrop",outName])
-        print("use 'ps2pdf' instead of 'epstopdf'")
+        subprocess.call(["ps2pdf","-dEPSCrop",epsFile])
+        print("using 'ps2pdf' instead of 'epstopdf'")
 
-    pdfName = os.path.splitext(inName)[0]+'.pdf'
-    if not (options.keep or options.keepeps):                       os.remove(outName)
-    if (not (options.keep or options.keepps)) \
-        and os.path.exists(pdfName) \
-        and os.path.getmtime(pdfName) >= os.path.getmtime(inName) : os.remove(inName)
+    if not (args.keep or args.keepeps):                          os.remove(epsFile)
+    if not (args.keep or args.keepps) \
+       and pdfFile.exists() \
+       and os.path.getmtime(pdfFile) >= os.path.getmtime(file) : os.remove(file)
