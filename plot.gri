@@ -1076,7 +1076,7 @@ while {rpn .nFiles. .i. <}
   else if {rpn "dot" "\symbol" ==}
     set symbol size {rpn ..symbolsize.. 2 /}
     if .colorByData.
-      if {rpn .hasZhue. .zhue. 0 >= and}
+      if {rpn .hasZhue. 0 .zhue. >= and}
         draw symbol bullet colorrange .zhue.
       else
         draw symbol bullet graylevel z
@@ -1088,7 +1088,7 @@ while {rpn .nFiles. .i. <}
   else if {rpn "none" "\symbol" == }
   else
     if .colorByData.
-      if {rpn .hasZhue. .zhue. 0 >= and}
+      if {rpn .hasZhue. 0 .zhue. >= and}
         draw symbol \symbol colorrange .zhue.
       else
         draw symbol \symbol graylevel z
