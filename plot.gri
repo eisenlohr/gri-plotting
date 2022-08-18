@@ -6,6 +6,7 @@
 .argcount. = 3                                                            # filename x y
 
 new \
+  \bgcolor \
   .back. \
   .clip. \
   .tight. \
@@ -239,6 +240,16 @@ new \
    show "margin right  " .rightmargin.
    show "margin top    " .topmargin.
    show "margin bottom " .bottommargin.
+  end if
+}
+
+#-------------------------------------------------------------------------
+`the_background'
+{
+  if {rpn "\bgcolor" "" !=}
+     set color \bgcolor
+     draw box filled .leftmargin. {rpn .bottommargin. .aspect. .diagramsize. * +} {rpn .leftmargin. .diagramsize. +} .bottommargin. cm
+     set color black
   end if
 }
 
@@ -591,6 +602,10 @@ end if
 get_number "gap" &.arg. &.gap. "\.missingvalue."
 set missing value .gap.
 
+# ----- background -----
+
+get_string "background" &.arg. &\bgcolor ""
+
 # ----- back -----
 
 get_logical "back"    &.arg. &.back.    0
@@ -626,30 +641,32 @@ if {rpn 0 .datacount. .argcount. remainder == 0 .datacount. >= and}
  end if
 else
  show ""
- show "usage: plot.gri [ 'line' (name | 'own') | 'stepped' where ]"
- show "                [ 'linewidth' (value | 'own') ]"
- show "                [ 'symbol' (name | 'own') ]"
- show "                [ 'symbolsize' (value | 'own') ]"
- show "                [ 'colormap' (name | 'own') | 'color' (name | 'own' | 'z'[:'own' | hue]) ]"
- show "                [ 'label' ['initial'] ['outside'] ]"
- show "                [ 'noaxes' | 'noxaxis' | 'noyaxis' ]"
- show "                [ 'abs' | 'absx' | 'absy' ]"
- show "                [ 'second' | 'secondx' | 'secondy' & "
- show "                  x2.type x2.label x2.format x2.start x2.end x2.Nincs x2.Nsubincs"
- show "                  y2.type y2.label y2.format y2.start y2.end y2.Nincs y2.Nsubincs ]"
- show "                [ 'gap' value ]"
- show "                [ 'back' ]"
- show "                [ 'clip' ]"
- show "                [ 'tight' ]"
- show "                [ 'aspect' y/x-ratio ]"
- show "                ['frame'] ['inch'] size "
- show "                x.type  x.label x.format"
- show "                x.start x.end   x.Nincs x.Nsubincs x.scaling"
- show "                y.type  y.label y.format"
- show "                y.start y.end   y.Nincs y.Nsubincs y.scaling"
- show "                filename col.x col.y [label] [line] [linewidth] [symbol] [symbolsize] [color|col.color]"
- show "               [filename col.x col.y [label] [line] [linewidth] [symbol] [symbolsize] [color|col.color]]"
- show "                ..."
+ show "usage: plot.gri"
+ show "       [ 'line' (name | 'own') | 'stepped' where ]"
+ show "       [ 'linewidth' (value | 'own') ]"
+ show "       [ 'symbol' (name | 'own') ]"
+ show "       [ 'symbolsize' (value | 'own') ]"
+ show "       [ 'colormap' (name | 'own') | 'color' (name | 'own' | 'z'[:'own' | hue]) ]"
+ show "       [ 'label' ['initial'] ['outside'] ]"
+ show "       [ 'noaxes' | 'noxaxis' | 'noyaxis' ]"
+ show "       [ 'abs' | 'absx' | 'absy' ]"
+ show "       [ 'second' | 'secondx' | 'secondy' & "
+ show "         x2.type x2.label x2.format x2.start x2.end x2.Nincs x2.Nsubincs"
+ show "         y2.type y2.label y2.format y2.start y2.end y2.Nincs y2.Nsubincs ]"
+ show "       [ 'gap' value ]"
+ show "       [ 'background' color ]"
+ show "       [ 'back' ]"
+ show "       [ 'clip' ]"
+ show "       [ 'tight' ]"
+ show "       [ 'aspect' y/x-ratio ]"
+ show "       [ 'frame' ] [ 'inch' ] size "
+ show "       x.type  x.label x.format"
+ show "       x.start x.end   x.Nincs x.Nsubincs x.scaling"
+ show "       y.type  y.label y.format"
+ show "       y.start y.end   y.Nincs y.Nsubincs y.scaling"
+ show "       filename col.x col.y [label] [line] [linewidth] [symbol] [symbolsize] [color|col.color]"
+ show "     [ filename col.x col.y ... ]"
+ show "       ..."
  show ""
  show "Nincs:          number of increments for major tick labeling"
  show "Nsubincs:       number of increments for minor ticking"
@@ -766,6 +783,10 @@ end if
 # ----- diagram metrics -----
 
 the_layout
+
+# ----- background -----
+
+the_background
 
 # ----- info label -----
 
