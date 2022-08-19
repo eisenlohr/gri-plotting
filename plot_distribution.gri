@@ -1,4 +1,5 @@
-.labelfont. = 11
+.axesfont. = 11
+.labelfont. = 9
 .tickfont. = 9
 .infofont. = 3
 .symbolsize. = 0.15
@@ -187,7 +188,7 @@ new \
 `the_layout'
 {
   set font to Times
-  set font size .labelfont.
+  set font size .axesfont.
   set line width axis 0.5
 
   if .tight.
@@ -501,7 +502,7 @@ new \
 #-------------------------------------------------------------------------
 `the_datalayout'
 {
-  set font size .tickfont.
+  set font size .labelfont.
   set line join 1                     # round join
   set line cap 1                      # round cap
   set symbol size .symbolsize.
@@ -1113,31 +1114,31 @@ end if
 
 # ----- axis labels -----
 
-set font size .labelfont.
+set font size .axesfont.
 set color black
 
 if .transpose.
 
   if .secondx.
-    draw label "\x2label" centered at {rpn .leftmargin. .rightmargin. + .diagramsize. + "\x2label" descent .labelfont. 3 / pttocm + -} {rpn .bottommargin. .aspect. .diagramsize. * 2 / +} cm rotated 90
+    draw label "\x2label" centered at {rpn .leftmargin. .rightmargin. + .diagramsize. + "\x2label" descent .axesfont. 3 / pttocm + -} {rpn .bottommargin. .aspect. .diagramsize. * 2 / +} cm rotated 90
   end if
   if .axislabelx.
-    draw label "\xlabel"  centered at {rpn "\xlabel" ascent .labelfont. 3 / pttocm +} {rpn .bottommargin. .aspect. .diagramsize. * 2 / +} cm rotated 90
+    draw label "\xlabel"  centered at {rpn "\xlabel" ascent .axesfont. 3 / pttocm +} {rpn .bottommargin. .aspect. .diagramsize. * 2 / +} cm rotated 90
   end if
   if .axislabely.
-    draw label "\ylabel"  centered at {rpn .leftmargin. .diagramsize. 2 / +} {rpn "\ylabel" descent .labelfont. 3 / pttocm +} cm
+    draw label "\ylabel"  centered at {rpn .leftmargin. .diagramsize. 2 / +} {rpn "\ylabel" descent .axesfont. 3 / pttocm +} cm
   end if
 
 else
 
   if .secondx.
-    draw label "\x2label" centered at {rpn .leftmargin. .diagramsize. 2 / +} {rpn .bottommargin. .topmargin. + .aspect. .diagramsize. * + "\x2label" ascent .labelfont. 3 / pttocm + -} cm
+    draw label "\x2label" centered at {rpn .leftmargin. .diagramsize. 2 / +} {rpn .bottommargin. .topmargin. + .aspect. .diagramsize. * + "\x2label" ascent .axesfont. 3 / pttocm + -} cm
   end if
   if .axislabelx.
-    draw label "\xlabel"  centered at {rpn .leftmargin. .diagramsize. 2 / +} {rpn "\xlabel" descent .labelfont. 3 / pttocm +} cm
+    draw label "\xlabel"  centered at {rpn .leftmargin. .diagramsize. 2 / +} {rpn "\xlabel" descent .axesfont. 3 / pttocm +} cm
   end if
   if .axislabely.
-    draw label "\ylabel"  centered at {rpn "\ylabel" ascent .labelfont. 3 / pttocm +} {rpn .bottommargin. .aspect. .diagramsize. * 2 / +} cm rotated 90
+    draw label "\ylabel"  centered at {rpn "\ylabel" ascent .axesfont. 3 / pttocm +} {rpn .bottommargin. .aspect. .diagramsize. * 2 / +} cm rotated 90
   end if
 
 end if
