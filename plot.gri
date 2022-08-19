@@ -16,6 +16,8 @@ new \
   .color. .colorByData. .zhue. .hasZhue. .owncolor. \color .colormap. .owncolormap. \colormap \
   .steps. \
   .curvelabel. \
+  .labelspot. \
+  .labelidx. \
   .axislabelx. .axislabely. \
   .absx. .absy. \
   .secondx. .secondy. \
@@ -52,7 +54,8 @@ new \
 
 .steps.  = 0
 .curvelabel. = 0
-.labelreverse. = 0
+.labelspot. = -1
+.labelidx. = 0
 .labeloutside. = 0
 .axislabelx. = 1
 .axislabely. = 1
@@ -528,23 +531,20 @@ end if
 
 # ----- label -----
 
-get_logical "label" &.arg. &.curvelabel. 0
-.argcount. += .curvelabel.
+get_number "label" &.arg. &.labelspot. -1
 
-if .curvelabel.
-  get_logical "initial" &.arg. &.labelreverse. 0
+if {rpn .labelspot. -1 !=}
   get_logical "outside" &.arg. &.labeloutside. 0
+  .labelspot. = {rpn .labelspot. 0 sup 1 inf}
+  .curvelabel. = 1
 end if
+.argcount. += .curvelabel.
 
 # ----- noaxes -----
 
 get_bitfield "noaxes" "noxaxis" "noyaxis" &.arg. &.axislabelx. &.axislabely.
 .axislabelx. = {rpn .axislabelx. not}
 .axislabely. = {rpn .axislabely. not}
-
-# ----- abs -----
-
-get_bitfield "abs" "absx" "absy" &.arg. &.absx. &.absy.
 
 # ----- second set of axes -----
 
@@ -598,6 +598,10 @@ if .secondy.
   .arg. += 7
 end if
 
+# ----- abs -----
+
+get_bitfield "abs" "absx" "absy" &.arg. &.absx. &.absy.
+
 # ----- gap -----
 
 get_number "gap" &.arg. &.gap. "\.missingvalue."
@@ -643,25 +647,27 @@ if {rpn 0 .datacount. .argcount. remainder == 0 .datacount. >= and}
 else
  show ""
  show "usage: plot.gri"
- show "       [ 'line' (name | 'own') | 'stepped' where ]"
- show "       [ 'linewidth' (value | 'own') ]"
- show "       [ 'symbol' (name | 'own') ]"
- show "       [ 'symbolsize' (value | 'own') ]"
- show "       [ 'colormap' (name | 'own') | 'color' (name | 'own' | 'z'[:'own' | hue]) ]"
- show "       [ 'label' ['initial'] ['outside'] ]"
- show "       [ 'noaxes' | 'noxaxis' | 'noyaxis' ]"
- show "       [ 'abs' | 'absx' | 'absy' ]"
- show "       [ 'second' | 'secondx' | 'secondy' & "
+ show "       [ 'line' (name | 'own') |"
+ show "         'stepped' where ]                     --> type of line    (or own per curve)"
+ show "       [ 'linewidth' (value | 'own') ]         --> width of lines  (or own per curve)"
+ show "       [ 'symbol' (name | 'own') ]             --> type of symbol  (or own per curve)"
+ show "       [ 'symbolsize' (value | 'own') ]        --> size of symbols (or own per curve)"
+ show "       [ 'colormap' (name | 'own') |           --> color(map) of curves (or own per curve)"
+ show "       [ 'color'    (name | 'own'  | 'z'[:'own' | hue]) ]"
+ show "       [ 'label' spot ['outside'] ]            --> label curves at relative spot (0.0 - 1.0)"
+ show "       [ 'noaxes' | 'noxaxis' | 'noyaxis' ]    --> omit axes"
+ show "       [ 'second' | 'secondx' | 'secondy' &    --> plot secondary axes"
  show "         x2.type x2.label x2.format x2.start x2.end x2.Nincs x2.Nsubincs"
  show "         y2.type y2.label y2.format y2.start y2.end y2.Nincs y2.Nsubincs ]"
- show "       [ 'gap' value ]"
- show "       [ 'background' color ]"
- show "       [ 'back' ]"
- show "       [ 'clip' ]"
- show "       [ 'tight' ]"
- show "       [ 'aspect' y/x-ratio ]"
- show "       [ 'frame' ] [ 'inch' ] size "
- show "       x.type  x.label x.format"
+ show "       [ 'abs' | 'absx' | 'absy' ]             --> take absolute values"
+ show "       [ 'gap' value ]                         --> value to ignore in data"
+ show "       [ 'background' color ]                  --> fill frame with color"
+ show "       [ 'back' ]                              --> draw data behind axes"
+ show "       [ 'clip' ]                              --> restrict data to within frame"
+ show "       [ 'tight' ]                             --> minimum margin around frame"
+ show "       [ 'aspect' y/x-ratio ]                  --> frame aspect ratio"
+ show "       [ 'frame' ] [ 'inch' ] size             --> diagram (frame) size in cm (or inch)"
+ show "       x.type  x.label x.format                --> ('linear' | 'log') theLabel theLabel (%g | %.1f | ... )"
  show "       x.start x.end   x.Nincs x.Nsubincs x.scaling"
  show "       y.type  y.label y.format"
  show "       y.start y.end   y.Nincs y.Nsubincs y.scaling"
@@ -1125,27 +1131,16 @@ while {rpn .nFiles. .i. <}
  # ------------- draw label ----------------
 
  if .curvelabel.
-  if .labelreverse.
-    if .labeloutside.
+   .labelidx. = {rpn ..num_col_data.. 1 - .labelspot. * dec2hex hex2dec}
+   if {rpn .labeloutside. .labelspot. 0.5 > and .labeloutside. not .labelspot. 0.5 <= and or}
       draw label "\label" rightjustified at \
-      {rpn x 0 @ xusertocm "x" width -} \
-      {rpn y 0 @ yusertocm "\label" ascent 2 / -} cm
-    else
+      {rpn x .labelidx. @ xusertocm "x" width -} \
+      {rpn y .labelidx. @ yusertocm "\label" ascent 2 / -} cm
+   else
       draw label "\label" at \
-      {rpn x 0 @ xusertocm "x" width +} \
-      {rpn y 0 @ yusertocm "\label" ascent 2 / -} cm
-    end if
-  else
-    if .labeloutside.
-      draw label "\label" at \
-      {rpn ..xlast.. xusertocm "x" width +} \
-      {rpn ..ylast.. yusertocm "\label" ascent 2 / -} cm
-    else
-      draw label "\label" rightjustified at \
-      {rpn ..xlast.. xusertocm "x" width -} \
-      {rpn ..ylast.. yusertocm "\label" ascent 2 / -} cm
-    end if
-  end if
+      {rpn x .labelidx. @ xusertocm "x" width +} \
+      {rpn y .labelidx. @ yusertocm "\label" ascent 2 / -} cm
+   end if
  end if
 
 
