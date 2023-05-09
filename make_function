@@ -26,11 +26,18 @@ args.x = int(args.x)-1 if args.x.isdigit() else args.x
 args.y = int(args.y)-1 if args.y.isdigit() else args.y
 args.z = int(args.z)-1 if args.z is not None and args.z.isdigit() else args.z
 
+with sys.stdin if args.file is None else open(args.file) as f:
+    content = f.read()
+try:
+    df = pd.read_csv(StringIO(content),
+                    sep='\s+',
+                    comment='#',
+                    )
+except pd.errors.ParserError:
+    df = pd.read_csv(StringIO(content),
+                    comment='#',
+                    )
 
-df = pd.read_csv(sys.stdin if args.file is None else args.file,
-                 sep='\s+',
-                 comment='#',
-                )
 cols = [df.columns[c] if isinstance(c,int) else c for c in [args.x,args.y] + ([] if args.z is None else [args.z])]
 data = df[cols].to_numpy().astype(float)
 

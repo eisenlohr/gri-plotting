@@ -46,10 +46,18 @@ value  = int(args.column)-1 if args.column.isdigit() else args.column
 weight = value if args.weight is None else int(args.weight)-1 if args.weight.isdigit() else args.weight
 cols = np.array([value,weight])
 
-df = pd.read_csv(sys.stdin if args.file is None else args.file,
-                 sep='\s+',
-                 comment='#',
-                )
+with sys.stdin if args.file is None else open(args.file) as f:
+    content = f.read()
+try:
+    df = pd.read_csv(StringIO(content),
+                    sep='\s+',
+                    comment='#',
+                    )
+except pd.errors.ParserError:
+    df = pd.read_csv(StringIO(content),
+                    comment='#',
+                    )
+
 data = df[df.columns[cols] if cols.dtype==int else cols].to_numpy().astype(float)
 data = data[data[:,0].flatten() != args.skip,:] if args.skip else data
 data[:,1] = 1 if args.weight is None else data[:,1]
