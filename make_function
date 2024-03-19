@@ -30,8 +30,9 @@ with sys.stdin if args.file is None else open(args.file) as f:
     content = f.read()
 try:
     df = pd.read_csv(StringIO(content),
-                    sep='\s+',
-                    comment='#',
+                     sep='\s',
+                     comment='#',
+                     engine='python',
                     )
 except pd.errors.ParserError:
     df = pd.read_csv(StringIO(content),
