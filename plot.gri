@@ -54,7 +54,10 @@ new \
 
 .steps.  = 0
 .curvelabel. = 0
+.ownlabelspot. = 0
+\labelspot = ""
 .labelspot. = -1
+
 .labelidx. = 0
 .labeloutside. = 0
 .axislabelx. = 1
@@ -531,14 +534,20 @@ end if
 
 # ----- label -----
 
-get_number "label" &.arg. &.labelspot. -1
-
-if {rpn .labelspot. -1 !=}
-  get_logical "outside" &.arg. &.labeloutside. 0
+get_stringOrNumber "label" &.arg. &\labelspot "" &.labelspot. -1
+if {rpn "own" "\labelspot" ==}                  # own per data set
+  .ownlabelspot. = 1
+  .curvelabel. = 1
+  if ..debug..
+    show "own labelspot"
+  end if
+  else if {rpn .labelspot. -1 !=}
   .labelspot. = {rpn .labelspot. 0 sup 1 inf}
   .curvelabel. = 1
 end if
+get_logical "outside" &.arg. &.labeloutside. 0
 .argcount. += .curvelabel.
+.argcount. += .ownlabelspot.
 
 # ----- noaxes -----
 
@@ -654,7 +663,7 @@ else
  show "       [ 'symbolsize' (value | 'own') ]        --> size of symbols (or own per curve)"
  show "       [ 'colormap' (name | 'own') |           --> color(map) of curves (or own per curve)"
  show "       [ 'color'    (name | 'own'  | 'z'[:'own' | hue]) ]"
- show "       [ 'label' spot ['outside'] ]            --> label curves at relative spot (0.0 - 1.0)"
+ show "       [ 'label' (spot | 'own') ['outside'] ]  --> label curves at relative spot (0.0 - 1.0) within data"
  show "       [ 'noaxes' | 'noxaxis' | 'noyaxis' ]    --> omit axes"
  show "       [ 'second' | 'secondx' | 'secondy' &    --> plot secondary axes"
  show "         x2.type x2.label x2.format x2.start x2.end x2.Nincs x2.Nsubincs"
@@ -671,7 +680,7 @@ else
  show "       x.start x.end   x.Nincs x.Nsubincs x.scaling"
  show "       y.type  y.label y.format"
  show "       y.start y.end   y.Nincs y.Nsubincs y.scaling"
- show "       filename col.x col.y [label] [line] [linewidth] [symbol] [symbolsize] [color|col.color]"
+ show "       filename col.x col.y [label] [labelspot] [line] [linewidth] [symbol] [symbolsize] [color|col.color [hue]]"
  show "     [ filename col.x col.y ... ]"
  show "       ..."
  show ""
@@ -831,7 +840,7 @@ if .owncolormap.
 
   while {rpn .nFiles. .i. <}
 
-  \owncolormap = {rpn .arg. 3 .curvelabel. .ownline. .ownlinewidth. .ownsymbol. .ownsymbolsize. .owncolormap. + + + + + + + argv}
+  \owncolormap = {rpn .arg. 3 .curvelabel. .ownlabelspot. .ownline. .ownlinewidth. .ownsymbol. .ownsymbolsize. .owncolormap. + + + + + + + + argv}
   if {rpn "\owncolormap" "gray" ==}
    .nGray. += 1
   else if {rpn "\owncolormap" "red" ==}
@@ -887,6 +896,11 @@ while {rpn .nFiles. .i. <}
  if .curvelabel.
    .arg. += 1
    \label  = {rpn .arg. argv}
+ end if
+
+ if .ownlabelspot.
+   .arg. += 1
+   .labelspot. = {rpn .arg. argv atof}
  end if
 
  if .ownline.
@@ -1131,7 +1145,8 @@ while {rpn .nFiles. .i. <}
  # ------------- draw label ----------------
 
  if .curvelabel.
-   .labelidx. = {rpn ..num_col_data.. 1 - .labelspot. * dec2hex hex2dec}
+#   .labelidx. = {rpn ..num_col_data.. 1 - .labelspot. * dec2hex hex2dec}
+   .labelidx. = {rpn ..num_col_data.. 1 - .labelspot. * }
    if {rpn .labeloutside. .labelspot. 0.5 > and .labeloutside. not .labelspot. 0.5 <= and or}
       draw label "\label" rightjustified at \
       {rpn x .labelidx. @ xusertocm "x" width -} \
