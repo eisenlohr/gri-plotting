@@ -50,7 +50,7 @@ with sys.stdin if args.file is None else open(args.file) as f:
     content = f.read()
 try:
     df = pd.read_csv(StringIO(content),
-                    sep='\s+',
+                    sep=r'\s+',
                     comment='#',
                     )
 except pd.errors.ParserError:
